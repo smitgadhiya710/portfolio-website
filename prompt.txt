@@ -1,0 +1,1014 @@
+Build a Premium Freelance Full-Stack Developer Portfolio
+
+Build a complete, production-quality personal portfolio website for Smit Gadhiya, a Full-Stack Developer based in Surat, Gujarat.
+
+The website is primarily designed to attract freelance clients, startup founders, and businesses looking for a developer to build or improve web applications.
+
+This must NOT look like a generic developer portfolio or a template.
+
+The design should communicate:
+
+Strong full-stack engineering ability
+Ability to build complete products end-to-end
+Backend and system architecture knowledge
+AI-integrated applications
+Workflow automation
+Scalable and maintainable software
+Professional freelance capability
+
+The overall impression should be:
+
+"This developer can take a business idea and turn it into a real, production-ready software product."
+
+1. Personal Information
+
+Name:
+
+Smit Gadhiya
+
+Title:
+
+Full-Stack Developer
+
+Location:
+
+Surat, Gujarat, India
+
+GitHub:
+
+github.com/smitgadhiya
+
+LinkedIn:
+
+linkedin.com/in/smitgadhiya
+
+Education:
+
+Bachelor of Engineering – Computer Engineering
+
+Shree Swami Atmanand Saraswati Institute of Technology
+
+2021 – 2025
+
+CGPA: 8.17/10.0
+
+2. Core Positioning
+
+Use this as the primary positioning throughout the website:
+
+Primary headline
+
+I build scalable web applications, AI-powered products, and business automation systems.
+
+Alternative supporting text:
+
+Full-stack developer focused on building production-ready applications from frontend interfaces to backend architecture, databases, integrations, AI features, and automation.
+
+Do NOT make the website overly focused on years of experience.
+
+The portfolio should focus more on:
+
+What I build + how I solve problems + what I've already built.
+
+3. Visual Design Direction
+
+Create a modern, premium, technical but human portfolio.
+
+Avoid:
+
+Generic portfolio templates
+Excessive gradients
+Excessive glassmorphism
+Huge animated backgrounds
+Overuse of glowing neon effects
+Fake statistics
+Fake client logos
+Fake testimonials
+Fake reviews
+Fake project screenshots
+Excessive animations
+Stock photos of programmers
+
+The website should look like it was designed by a strong software engineer with good product taste.
+
+Style
+
+Use:
+
+Dark-first design
+Clean typography
+Strong spacing
+Subtle borders
+Minimal gradients
+Technical visual details
+Subtle grid/background pattern
+Small micro-interactions
+Smooth transitions
+Professional cards
+High-quality responsive design
+
+Think:
+
+Linear + Vercel + modern SaaS landing page + personal engineering portfolio
+
+rather than:
+
+"developer portfolio template."
+
+4. Technology
+
+Build the website using:
+
+Next.js
+TypeScript
+Tailwind CSS
+shadcn/ui where appropriate
+Lucide icons
+Framer Motion or Motion for subtle animations
+
+Use reusable components.
+
+Keep the code clean and modular.
+
+The website must be fully responsive.
+
+Support:
+
+Desktop
+Laptop
+Tablet
+Mobile
+5. Navigation
+
+Create a sticky navigation bar.
+
+Left:
+
+Smit Gadhiya
+
+Right:
+
+Home
+Work
+Expertise
+About
+Contact
+
+Primary CTA:
+
+Let's Work Together
+
+On mobile, use a clean hamburger menu.
+
+The navbar should become slightly compact/blurred when scrolling.
+
+6. HERO SECTION
+
+The hero section is the most important part.
+
+Create a visually strong hero section with:
+
+Small label:
+
+FULL-STACK DEVELOPER
+
+Main headline:
+
+I build scalable web applications, AI-powered products, and business automation systems.
+
+Supporting paragraph:
+
+I work across the full stack — from React and Next.js interfaces to Node.js backends, databases, asynchronous systems, AI integrations, search, and workflow automation.
+
+CTA buttons:
+
+View My Work
+
+Let's Work Together
+
+Secondary link:
+
+GitHub ↗
+
+Add a small availability indicator:
+
+● Available for freelance projects
+
+Do not make this claim if it is not intended to be shown; keep it easy to remove/configure.
+
+7. HERO VISUAL
+
+Instead of using a personal photograph, create a sophisticated technical visual.
+
+Example:
+
+A simplified animated architecture visualization:
+
+Client → Frontend → API → Services → Database
+
+with additional nodes:
+
+AI
+Queue
+Search
+Automation
+
+The animation should be extremely subtle.
+
+Do NOT make it look like a sci-fi dashboard.
+
+Alternative:
+
+Create a terminal/code-inspired visual containing a simplified representation of Smit's stack.
+
+The visual should support the developer positioning rather than distract from the headline.
+
+8. TRUST / CAPABILITY STRIP
+
+Immediately below the hero, create a horizontal capability strip.
+
+Example:
+
+FULL-STACK
+BACKEND
+AI INTEGRATION
+AUTOMATION
+SYSTEM ARCHITECTURE
+SEARCH
+CLOUD
+
+Keep this understated.
+
+9. "WHAT I BUILD" SECTION
+
+Section title:
+
+What I Build
+
+Subtitle:
+
+Software that solves real business problems — not just demos.
+
+Create 4–6 cards.
+
+Card 1 — Full-Stack Web Applications
+
+Build complete web applications with modern frontend, backend APIs, databases, authentication, authorization, and integrations.
+
+Technologies:
+
+React · Next.js · Node.js · PostgreSQL · MongoDB
+
+Card 2 — Backend & API Systems
+
+Design REST APIs, modular backend services, authentication systems, background processing, and scalable backend architecture.
+
+Technologies:
+
+Node.js · Express · REST · Redis · WebSockets
+
+Card 3 — AI-Powered Applications
+
+Integrate AI into existing products or build AI-first applications.
+
+Examples:
+
+Resume parsing
+Content generation
+RAG-based search
+Intelligent recommendations
+AI-assisted workflows
+
+Technologies:
+
+OpenAI API · RAG · Vector DB · Elasticsearch
+
+Card 4 — Automation & Workflows
+
+Automate repetitive business processes and connect different systems.
+
+Technologies:
+
+n8n · APIs · Webhooks · OpenAI
+
+Card 5 — Scalable Systems
+
+Build systems using asynchronous processing, queues, event-driven architecture, caching, and microservices.
+
+Technologies:
+
+RabbitMQ · BullMQ · AWS SQS/SNS · Redis
+
+Card 6 — Search & Data Retrieval
+
+Build fast and relevant search experiences using traditional and semantic search.
+
+Technologies:
+
+Elasticsearch · Vector DB · Chroma
+
+10. FEATURED WORK
+
+This should be one of the strongest sections.
+
+Title:
+
+Selected Work
+
+Subtitle:
+
+A few systems I've designed and built.
+
+Use large project cards rather than small generic cards.
+
+Each project should contain:
+
+Project name
+Short description
+Problem
+Solution
+Architecture/technical highlights
+Technology tags
+Key outcomes
+GitHub/demo button if available
+
+Do NOT invent URLs.
+
+If a demo/GitHub is unavailable, simply don't show the button.
+
+PROJECT 1
+Levelios
+
+Badge:
+
+Project Management System
+
+Technology:
+
+Next.js · Node.js · Express · Redis · OpenAI API · Event-Driven Architecture · Opalstack
+
+Description:
+
+A role-based project management platform designed to manage organizations, projects, teams, employees, and skill progression.
+
+Highlights:
+
+Built a full-stack RBAC architecture
+Admin, Manager, and Employee roles
+Scoped data access
+Project and team management
+Intelligent employee/team recommendations
+Resume upload and automatic resume parsing
+AI-powered candidate information extraction
+Skill progression tracking
+Manager approval workflows
+Organization-level dashboards
+
+Create a visual architecture diagram inside the project detail view:
+
+Frontend → API → Backend → Redis → Database
+
+and:
+
+Resume → OpenAI → Structured Candidate Data
+
+Make the project feel like a real SaaS product.
+
+PROJECT 2
+My Ayur
+
+Badge:
+
+Healthcare Platform
+
+Technology:
+
+Node.js · Microservices · Docker · AWS SNS/SQS · Redis · GitHub Actions
+
+Description:
+
+A healthcare platform backend designed to serve thousands of users while processing large volumes of notifications.
+
+Highlight the scale carefully using the resume data:
+
+7,000+ users
+
+20,000+ notifications/day
+
+Technical highlights:
+
+4–5 microservices
+AWS SNS/SQS
+Redis caching
+JWT authentication
+RBAC
+Docker
+CI/CD with GitHub Actions
+Backend API optimization
+
+Create a visual architecture:
+
+API Gateway / Backend
+↓
+Microservices
+↓
+Queue
+↓
+Notification Workers
+↓
+AWS SNS/SQS
+
+and:
+
+Redis → Caching
+
+Highlight:
+
+40–50% API response-time improvement through Redis caching
+
+Do not invent additional metrics.
+
+PROJECT 3
+Quiz Prep
+
+Badge:
+
+AI-Powered Exam Practice Platform
+
+Technology:
+
+Next.js · Node.js · Express · n8n · OpenAI API
+
+Description:
+
+An exam preparation platform where administrators manage hundreds of question categories and automatically generate new questions using AI-powered workflows.
+
+Highlights:
+
+Admin/User roles
+Around 400 question categories
+Category/subcategory management
+Practice exams
+Automated question generation
+n8n workflow
+OpenAI API integration
+
+Show the workflow visually:
+
+Admin selects:
+
+Category
++
+Subcategory
++
+Question Count
+
+↓
+
+n8n Workflow
+
+↓
+
+OpenAI
+
+↓
+
+Generated Questions
+
+↓
+
+Database
+
+This visual should be interactive but subtle.
+
+PROJECT 4
+NancyPackes
+
+Badge:
+
+Building Management System
+
+Technology:
+
+React.js
+
+Description:
+
+A modern React-based building management system handling property, lease, and agent data across 40+ residential properties.
+
+Highlights:
+
+Migrated a legacy property management system
+40+ residential properties
+Reusable data table
+Pagination
+Sorting
+Dynamic columns
+Universal Excel export
+Infinite scrolling
+Role-based UI rendering
+Four user roles
+
+Focus this project more heavily on frontend engineering and reusable component architecture.
+
+11. PROJECT DETAIL INTERACTION
+
+When a visitor clicks a project:
+
+Open a large modal or dedicated project page.
+
+Structure:
+
+Project title
+
+↓
+
+Short overview
+
+↓
+
+Business problem
+
+↓
+
+Solution
+
+↓
+
+Architecture
+
+↓
+
+Technical implementation
+
+↓
+
+Key features
+
+↓
+
+Technology stack
+
+↓
+
+Results / measurable details
+
+↓
+
+GitHub / Demo if available
+
+Use smooth transitions.
+
+Do not create fake screenshots.
+
+If project screenshots are available later, make the component support them.
+
+12. ENGINEERING SECTION
+
+Create a section called:
+
+How I Think About Engineering
+
+This is important because the goal is to attract serious clients.
+
+Create 5 technical principles.
+
+Build for maintainability
+
+Prefer modular architecture, reusable components, clean APIs, and understandable code.
+
+Design for scale
+
+Use caching, queues, asynchronous processing, and appropriate architecture when the workload requires it.
+
+Automate repetitive work
+
+Use n8n and APIs to remove unnecessary manual processes.
+
+Use AI where it creates value
+
+AI should solve a real product problem rather than being added simply because it is popular.
+
+Ship end-to-end
+
+Frontend, backend, database, integrations, deployment, and production considerations.
+
+Keep the writing concise.
+
+13. TECHNICAL STACK
+
+Create an interactive technical stack section.
+
+Group technologies.
+
+Frontend
+
+React
+Next.js
+TypeScript
+Tailwind CSS
+Redux
+RTK Query
+TanStack Query
+Vite
+Radix UI
+
+Backend
+
+Node.js
+Express
+REST APIs
+Microservices
+WebSockets
+SSE
+Event-Driven Architecture
+
+Databases & Search
+
+PostgreSQL
+MySQL
+MongoDB
+Redis
+Elasticsearch
+Chroma
+Vector Databases
+
+Messaging
+
+RabbitMQ
+BullMQ
+AWS SQS
+AWS SNS
+
+AI & Automation
+
+OpenAI API
+RAG
+n8n
+
+Cloud & DevOps
+
+AWS
+Docker
+GitHub Actions
+Nginx
+Cloudflare
+Opalstack
+
+Languages
+
+JavaScript
+TypeScript
+Go
+
+Do not display all technologies as huge colorful logos.
+
+Use clean tags/chips with subtle hover interactions.
+
+14. EXPERIENCE
+
+Create a timeline.
+
+Full-Stack Developer
+
+Empiric Infotech LLP
+
+Aug 2025 – Present
+
+Show the most relevant points:
+
+RESTful backend services with Node.js and Express.js
+MongoDB and PostgreSQL
+Event-driven and queue-based systems
+Background jobs and asynchronous processing
+n8n workflow automation
+Vector database and Elasticsearch search
+AI-assisted development
+Modular and maintainable architecture
+Frontend Developer
+
+Bigscal Technologies Pvt Ltd.
+
+Jan 2025 – Jul 2025
+
+Show:
+
+React.js
+Next.js
+Material UI
+Tailwind CSS
+Context API
+Redux Toolkit
+RTK Query
+Reusable UI components
+Responsive applications
+Data-fetching optimization
+15. ABOUT SECTION
+
+Title:
+
+A little about me
+
+Write a concise human paragraph.
+
+Do not make it sound like an AI-generated biography.
+
+Suggested direction:
+
+I'm a full-stack developer who enjoys turning complex requirements into simple, reliable software. I work across frontend, backend, databases, APIs, automation, and AI integrations, with a particular interest in systems that need more than just a basic CRUD application.
+
+Then mention:
+
+Full-stack development
+Backend architecture
+AI integrations
+Automation
+Search
+Scalable systems
+
+Avoid generic phrases such as:
+
+"passionate developer"
+"coding enthusiast"
+"technology lover"
+
+unless they genuinely fit the person.
+
+16. FREELANCE CTA
+
+Create a strong conversion section.
+
+Headline:
+
+Have a product idea or a problem that needs software?
+
+Supporting text:
+
+Tell me what you're trying to build. I'll help you figure out the right technical approach and turn it into a working product.
+
+CTA:
+
+Start a Conversation
+
+Secondary CTA:
+
+View My Work
+
+Make this section visually distinct.
+
+17. CONTACT SECTION
+
+Title:
+
+Let's build something useful.
+
+Create a simple contact form:
+
+Name
+Email
+Company / Project
+What are you looking to build?
+Budget (optional)
+Message
+
+CTA:
+
+Send Message
+
+Also provide:
+
+GitHub
+LinkedIn
+Email
+
+Do not invent an email address if it isn't provided.
+
+Use placeholder configuration variables so the email can be added later.
+
+18. FOOTER
+
+Footer:
+
+Smit Gadhiya
+
+Full-Stack Developer
+
+Links:
+
+Work
+Expertise
+About
+Contact
+GitHub
+LinkedIn
+
+Small copyright:
+
+© 2026 Smit Gadhiya. All rights reserved.
+
+19. ANIMATIONS
+
+Use animations carefully.
+
+On page load:
+
+Fade/slide hero content
+Subtle architecture animation
+
+On scroll:
+
+Reveal sections
+Cards fade upward
+Timeline animation
+
+On hover:
+
+Project cards slightly elevate
+Technology chips subtly highlight
+Buttons have subtle movement
+
+Do NOT animate everything.
+
+Performance is more important than animation.
+
+Respect:
+
+prefers-reduced-motion
+
+20. RESPONSIVE DESIGN
+
+Mobile experience is extremely important.
+
+On mobile:
+
+Hero headline should remain readable
+CTA buttons stack if necessary
+Project cards become single-column
+Architecture diagrams simplify
+Navigation becomes hamburger
+Technical stack becomes scrollable/grouped
+Contact form becomes single-column
+
+No horizontal overflow.
+
+21. SEO
+
+Add proper:
+
+Title:
+
+Smit Gadhiya | Full-Stack Developer
+
+Description:
+
+Smit Gadhiya is a Full-Stack Developer building scalable web applications, AI-powered products, backend systems, and business automation workflows.
+
+Add:
+
+Open Graph metadata
+Twitter metadata
+Favicon
+Semantic HTML
+Proper heading hierarchy
+robots.txt
+sitemap
+22. PERFORMANCE
+
+The website must be production-ready.
+
+Requirements:
+
+Optimize images
+Lazy-load non-critical images
+Avoid unnecessary JavaScript
+Use Next.js optimizations
+Avoid huge animation libraries where unnecessary
+Keep Lighthouse performance high
+Accessible keyboard navigation
+Proper focus states
+Good color contrast
+
+Target:
+
+90+ Lighthouse performance where realistically achievable.
+
+23. CONTENT RULES
+
+This is extremely important.
+
+Do NOT invent:
+
+Clients
+Testimonials
+Revenue
+Project users beyond stated numbers
+Company names
+Awards
+Certifications
+Years of experience beyond the provided resume
+Project results
+GitHub repositories
+Demo URLs
+Email addresses
+
+Only use information supplied in this prompt.
+
+If information is missing, make the component easy to configure rather than inventing information.
+
+24. FREELANCE-FIRST UX
+
+The website should be designed around converting visitors into potential clients.
+
+A visitor should understand within approximately 10 seconds:
+
+Who is Smit?
+
+Full-Stack Developer.
+
+What does he build?
+
+Web applications, backend systems, AI products, and automation.
+
+Can he handle complex systems?
+
+Yes — microservices, queues, event-driven architecture, databases, search, AI, and cloud.
+
+Has he built real systems?
+
+Yes — Levelios, My Ayur, Quiz Prep, NancyPackes.
+
+How can I contact him?
+
+Clear CTA throughout the website.
+
+Add a floating/mobile contact CTA if appropriate, but keep it subtle.
+
+25. IMPORTANT DESIGN PRINCIPLE
+
+Do not make the portfolio look like a resume converted into HTML.
+
+The resume is the source of information.
+
+The portfolio should transform that information into a story:
+
+Hero
+
+What I build.
+
+↓
+
+Capabilities
+
+What I can solve.
+
+↓
+
+Selected Work
+
+Proof that I've built it.
+
+↓
+
+Engineering
+
+How I approach difficult problems.
+
+↓
+
+Experience
+
+Where I've applied these skills.
+
+↓
+
+Contact
+
+Let's work together.
+
+26. FINAL QUALITY CHECK
+
+Before considering the website complete, verify:
+
+No fake information
+No broken links
+No placeholder lorem ipsum
+No console errors
+No TypeScript errors
+No responsive issues
+No horizontal overflow
+All buttons work
+Navigation works
+Mobile menu works
+Contact form has proper validation
+Accessibility basics are implemented
+SEO metadata exists
+Project detail views work
+Animations don't hurt performance
+Website looks polished on 1440px desktop
+Website looks polished on 390px mobile
+
+The final result should feel like a premium freelance software engineer's portfolio, not a student portfolio and not a generic AI-generated template.
+
+The primary goal is:
+
+Turn visitors into freelance conversations.
