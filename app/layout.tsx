@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,12 +13,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://smitgadhiya.com"),
-  title: "Smit Gadhiya — Full-Stack Developer",
+  metadataBase: new URL("https://smit-gadhiya-portfolio.vansita-empiricinfot.chatgpt.site"),
+  title: {
+    default: "Smit Gadhiya — Full Stack. Full Depth.",
+    template: "%s",
+  },
   description:
     "Smit Gadhiya engineers expressive product interfaces, resilient backend systems, and useful AI workflows.",
   openGraph: {
-    title: "Smit Gadhiya — Building Digital Systems",
+    title: "Smit Gadhiya — Full Stack. Full Depth.",
     description:
       "Full-stack development, backend architecture, applied AI, and automation built with intent.",
     type: "website",
@@ -27,21 +30,24 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/og.png",
-        width: 1744,
-        height: 910,
-        alt: "Smit Gadhiya — Building Digital Systems",
+        alt: "Smit Gadhiya — Full Stack. Full Depth.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Smit Gadhiya — Building Digital Systems",
+    title: "Smit Gadhiya — Full Stack. Full Depth.",
     description: "Product interfaces, backend systems, and AI workflows built for the real world.",
     images: ["/og.png"],
   },
   icons: {
     icon: "/favicon.svg",
   },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: "#06070B",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

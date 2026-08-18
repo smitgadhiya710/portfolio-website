@@ -1,497 +1,450 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "framer-motion";
 import {
   ArrowDown,
+  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  Asterisk,
   Braces,
+  Check,
+  ChevronRight,
+  CirclePause,
+  CirclePlay,
+  Code2,
   Github,
   Linkedin,
   Mail,
   Menu,
-  MoveUpRight,
-  Sparkles,
+  Network,
+  Play,
+  Radio,
+  RotateCcw,
+  Volume2,
+  VolumeX,
   X,
 } from "lucide-react";
-import DeveloperWorkspace3D from "@/components/developer-workspace-3d";
-import { contact, experience, projects, stackGroups } from "@/lib/content";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
-const navItems = [
-  { label: "Work", href: "#work" },
-  { label: "Capabilities", href: "#capabilities" },
-  { label: "Experience", href: "#experience" },
-  { label: "Contact", href: "#contact" },
-];
+import { ExperienceCanvas } from "@/components/immersive/experience-canvas";
+import {
+  ExperienceProvider,
+  useExperience,
+} from "@/components/immersive/experience-provider";
+import {
+  capabilityChains,
+  chapters,
+  contact,
+  education,
+  experience,
+  navItems,
+  pipelineStages,
+  projects,
+  stackLayers,
+} from "@/lib/content";
 
-const services = [
-  {
-    number: "01",
-    title: "Product engineering",
-    description: "Interfaces with sharp interaction, resilient state, and product logic that holds together.",
-  },
-  {
-    number: "02",
-    title: "Backend systems",
-    description: "APIs, queues, caching, permissions, and service boundaries made for real-world load.",
-  },
-  {
-    number: "03",
-    title: "Applied AI",
-    description: "Search, extraction, generation, and assistants designed around a useful product outcome.",
-  },
-  {
-    number: "04",
-    title: "Automation",
-    description: "Connected workflows that replace repetitive work with observable, reliable systems.",
-  },
-];
-
-const projectLooks = [
-  { accent: "#8c9dff", ink: "#0a0b12", className: "case-violet" },
-  { accent: "#ff6b82", ink: "#0a0b12", className: "case-coral" },
-  { accent: "#d9ff5b", ink: "#0a0b12", className: "case-lime" },
-  { accent: "#73e6ff", ink: "#0a0b12", className: "case-cyan" },
-];
-
-const technologyLoop = Array.from(new Set(stackGroups.flatMap(([, items]) => items))).slice(0, 24);
-
-function ProgressRail() {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 160, damping: 28, mass: 0.18 });
-
-  return <motion.div aria-hidden="true" className="progress-rail" style={{ scaleX }} />;
-}
-
-function Header() {
-  const [open, setOpen] = useState(false);
+function ExperienceHeader() {
+  const { activeChapter, motionEnabled, quality, soundEnabled, toggleMotion, toggleSound } = useExperience();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    const close = () => setOpen(false);
-    window.addEventListener("resize", close);
-    return () => window.removeEventListener("resize", close);
+    const update = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(scrollable > 0 ? window.scrollY / scrollable : 0);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
   }, []);
 
   return (
-    <header className="site-header">
-      <nav className="site-nav shell" aria-label="Primary navigation">
-        <a className="wordmark focus-ring" href="#top" aria-label="Smit Gadhiya — home">
-          <span>SG</span>
-          <span className="wordmark-dot" />
-          <span>26</span>
+    <>
+      <header className="site-header">
+        <a className="brand" href="#home" aria-label="Smit Gadhiya, back to top">
+          <span className="brand-mark">SG</span>
+          <span className="brand-copy">
+            <strong>Smit Gadhiya</strong>
+            <small>{chapters[activeChapter]?.label ?? "System online"}</small>
+          </span>
         </a>
 
-        <div className="desktop-nav">
+        <nav className="desktop-nav" aria-label="Primary navigation">
           {navItems.map((item) => (
-            <a className="nav-item focus-ring" href={item.href} key={item.href}>
-              {item.label}
-            </a>
+            <a key={item.href} href={item.href}>{item.label}</a>
           ))}
+        </nav>
+
+        <div className="header-actions">
+          <span className="quality-pill" title="Automatically selected rendering quality">
+            {quality}
+          </span>
+          <button className="icon-button" type="button" onClick={toggleMotion} aria-pressed={!motionEnabled} aria-label={motionEnabled ? "Pause motion" : "Resume motion"}>
+            {motionEnabled ? <CirclePause size={17} /> : <CirclePlay size={17} />}
+          </button>
+          <button className="icon-button" type="button" onClick={toggleSound} aria-pressed={soundEnabled} aria-label={soundEnabled ? "Mute sound" : "Enable sound"}>
+            {soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
+          </button>
+          <a className="availability-link" href="#contact"><span />Available</a>
+          <button className="menu-button" type="button" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-controls="mobile-menu" aria-label="Toggle navigation">
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
 
-        <a className="nav-availability focus-ring" href={`mailto:${contact.email}`}>
-          <span className="availability-pulse" /> Available for work
+        <span className="site-progress" style={{ transform: `scaleX(${scrollProgress})` }} />
+      </header>
+
+      <div id="mobile-menu" className={`mobile-menu ${menuOpen ? "is-open" : ""}`} aria-hidden={!menuOpen}>
+        {navItems.map((item, index) => (
+          <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+            <span>0{index + 1}</span>{item.label}<ChevronRight size={20} />
+          </a>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function ChapterRail() {
+  const { activeChapter } = useExperience();
+
+  return (
+    <nav className="chapter-rail" aria-label="Experience chapters">
+      {chapters.map((chapter, index) => (
+        <a key={chapter.href} href={chapter.href} className={activeChapter === index ? "is-active" : ""} aria-label={`Jump to ${chapter.label}`}>
+          <span>{String(index).padStart(2, "0")}</span>
+          <i />
+          <em>{chapter.label}</em>
         </a>
-
-        <button
-          type="button"
-          className="menu-button focus-ring"
-          aria-label={open ? "Close navigation" : "Open navigation"}
-          aria-expanded={open}
-          onClick={() => setOpen((value) => !value)}
-        >
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </nav>
-
-      <AnimatePresence>
-        {open ? (
-          <motion.div
-            className="mobile-nav shell"
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-          >
-            {navItems.map((item, index) => (
-              <a href={item.href} key={item.href} onClick={() => setOpen(false)}>
-                <span>0{index + 1}</span>
-                {item.label}
-                <ArrowUpRight size={18} />
-              </a>
-            ))}
-            <a className="mobile-email" href={`mailto:${contact.email}`}>
-              {contact.email}
-            </a>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </header>
+      ))}
+    </nav>
   );
 }
 
 function Hero() {
-  const reduceMotion = useReducedMotion();
-
   return (
-    <section className="hero shell" id="top">
-      <div className="hero-topline">
-        <p>Full-stack developer</p>
-        <p>Surat, India · 21.1702° N</p>
-        <p className="hero-topline-last">Scroll to explore</p>
-      </div>
-
-      <div className="hero-grid">
-        <div className="hero-copy">
-          <motion.p
-            className="hero-kicker"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55 }}
-          >
-            <Sparkles size={14} /> Product · Backend · AI
-          </motion.p>
-
-          <h1 aria-label="Building digital systems">
-            {["Building", "digital", "systems"].map((line, index) => (
-              <span className={index === 1 ? "outline-word" : ""} key={line}>
-                <motion.span
-                  initial={{ y: reduceMotion ? 0 : "115%" }}
-                  animate={{ y: 0 }}
-                  transition={{ duration: 0.75, delay: index * 0.09, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  {line}
-                </motion.span>
-              </span>
-            ))}
-          </h1>
-
-          <div className="hero-intro">
-            <p>
-              I engineer product interfaces, backend systems, and AI workflows that stay fast when the real world gets messy.
-            </p>
-            <a className="round-link focus-ring" href="#work" aria-label="Explore selected work">
-              <ArrowDown size={22} />
-            </a>
-          </div>
+    <section id="home" className="hero chapter-section" aria-labelledby="hero-title">
+      <div className="hero-grid grid-guides" />
+      <div className="hero-copy">
+        <p className="eyebrow"><Radio size={14} /> Full-stack developer · AI systems builder</p>
+        <h1 id="hero-title"><span>Full stack.</span><span className="outline-text">Full depth.</span></h1>
+        <p className="hero-lede">
+          I engineer expressive product interfaces, resilient backend systems, and useful AI workflows—then connect them into products that hold up in the real world.
+        </p>
+        <div className="hero-actions">
+          <a className="button button-primary" href="#work">Enter the work <ArrowDown size={17} /></a>
+          <a className="button button-quiet" href={`mailto:${contact.email}`}>Start a conversation <ArrowUpRight size={17} /></a>
         </div>
-
-        <motion.div
-          className="hero-scene"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <DeveloperWorkspace3D />
-          <span className="scene-label scene-label-top">Live system / 001</span>
-          <span className="scene-label scene-label-bottom">Move to inspect</span>
-          <span className="scene-cross scene-cross-a">+</span>
-          <span className="scene-cross scene-cross-b">+</span>
-        </motion.div>
       </div>
 
-      <div className="hero-footer">
-        <p>Designing the surface.</p>
-        <Asterisk size={18} />
-        <p>Engineering what runs beneath it.</p>
+      <div className="hero-status" aria-label="System status">
+        <span>SCENE 00 / WAKE</span>
+        <span>WEBGL · LIVE</span>
+        <span>SCROLL TO DEPLOY</span>
       </div>
+
+      <a className="scroll-cue" href="#stack"><span>Explore system</span><i><ArrowDown size={14} /></i></a>
     </section>
   );
 }
 
-function SectionIntro({ index, label, title }: { index: string; label: string; title: string }) {
-  return (
-    <motion.div
-      className="section-intro"
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.55 }}
-    >
-      <div>
-        <span>{index}</span>
-        <p>{label}</p>
-      </div>
-      <h2>{title}</h2>
-    </motion.div>
-  );
-}
-
-function CaseArtifact({ index }: { index: number }) {
-  return (
-    <div className={`case-artifact artifact-${index + 1}`} aria-hidden="true">
-      <span className="artifact-orbit orbit-one" />
-      <span className="artifact-orbit orbit-two" />
-      <span className="artifact-core">
-        <span className="artifact-core-inner" />
-      </span>
-      <span className="artifact-satellite satellite-one" />
-      <span className="artifact-satellite satellite-two" />
-      <span className="artifact-plane plane-one" />
-      <span className="artifact-plane plane-two" />
-    </div>
-  );
-}
-
-function ProjectCase({ index }: { index: number }) {
-  const project = projects[index];
-  const look = projectLooks[index];
-  const cardRef = useRef<HTMLElement>(null);
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const cursorX = useMotionValue(0);
-  const cursorY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(pointerY, [-0.5, 0.5], [8, -8]), { stiffness: 180, damping: 22 });
-  const rotateY = useSpring(useTransform(pointerX, [-0.5, 0.5], [-9, 9]), { stiffness: 180, damping: 22 });
-  const [hovered, setHovered] = useState(false);
-  const reduceMotion = useReducedMotion();
-
-  function handlePointerMove(event: React.PointerEvent<HTMLElement>) {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - bounds.left;
-    const y = event.clientY - bounds.top;
-    cursorX.set(x);
-    cursorY.set(y);
-    if (!reduceMotion) {
-      pointerX.set(x / bounds.width - 0.5);
-      pointerY.set(y / bounds.height - 0.5);
-    }
-  }
-
-  function resetPointer() {
-    setHovered(false);
-    pointerX.set(0);
-    pointerY.set(0);
-  }
+function StackChapter() {
+  const [activeLayer, setActiveLayer] = useState(0);
+  const selected = stackLayers[activeLayer];
 
   return (
-    <motion.article
-      ref={cardRef}
-      className={`project-case ${look.className}`}
-      style={{ "--case-accent": look.accent, "--case-ink": look.ink } as React.CSSProperties}
-      initial={{ opacity: 0, y: 48 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-10%" }}
-      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={resetPointer}
-      onPointerMove={handlePointerMove}
-    >
-      <div className="case-head">
-        <span>Case / 0{index + 1}</span>
-        <span>{project.badge}</span>
-        <span>2025—26</span>
-      </div>
-
-      <div className="case-canvas">
-        <span className="case-index" aria-hidden="true">0{index + 1}</span>
-        <motion.div className="artifact-stage" style={{ rotateX, rotateY }}>
-          <CaseArtifact index={index} />
-        </motion.div>
-        <motion.span
-          className="case-cursor"
-          animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0.6 }}
-          style={{ x: cursorX, y: cursorY }}
-        >
-          View
-          <ArrowUpRight size={13} />
-        </motion.span>
-      </div>
-
-      <div className="case-info">
-        <div>
-          <p className="case-role">{project.focus}</p>
-          <h3>{project.name}</h3>
-        </div>
-        <p className="case-description">{project.description}</p>
-        <div className="case-tags">
-          {project.tech.slice(0, 4).map((tech) => (
-            <span key={tech}>{tech}</span>
-          ))}
-        </div>
-      </div>
-    </motion.article>
-  );
-}
-
-function Work() {
-  return (
-    <section className="work-section" id="work">
-      <div className="shell">
-        <SectionIntro index="01" label="Selected work" title="Systems made tangible." />
-        <div className="project-list">
-          {projects.map((project, index) => (
-            <ProjectCase index={index} key={project.name} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Marquee() {
-  return (
-    <div className="technology-marquee" aria-label="Technology stack">
-      <motion.div
-        className="technology-track"
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 34, repeat: Infinity, ease: "linear" }}
-      >
-        {[0, 1].map((copy) => (
-          <div className="technology-set" aria-hidden={copy === 1} key={copy}>
-            {technologyLoop.map((technology) => (
-              <span key={`${copy}-${technology}`}>
-                {technology}<Asterisk size={14} />
-              </span>
+    <section id="stack" className="stack-chapter chapter-section" aria-labelledby="stack-title">
+      <div className="chapter-sticky split-layout">
+        <div className="chapter-copy">
+          <p className="section-index">01 / COMPLETE STACK</p>
+          <h2 id="stack-title">One product.<br />Every layer intentional.</h2>
+          <p className="section-lede">The glowing core stays with you because the work does too: interface decisions travel through APIs, services, data, and intelligence.</p>
+          <div className="layer-selector" role="tablist" aria-label="Full-stack layers">
+            {stackLayers.map((layer, index) => (
+              <button key={layer.label} type="button" role="tab" aria-selected={activeLayer === index} onClick={() => setActiveLayer(index)}>
+                <span>0{index + 1}</span>{layer.label}
+              </button>
             ))}
           </div>
-        ))}
-      </motion.div>
-    </div>
+          <div className="layer-detail" role="tabpanel">
+            <p>{selected.detail}</p>
+            <div className="tag-row">{selected.tools.map((tool) => <span key={tool}>{tool}</span>)}</div>
+          </div>
+        </div>
+        <div className="scene-caption scene-caption-right">
+          <span>STACK CORE</span>
+          <strong>{selected.label}</strong>
+          <small>Tap a layer to inspect</small>
+        </div>
+      </div>
+    </section>
   );
 }
 
-function Capabilities() {
+function ProjectChapter({ project, index }: { project: (typeof projects)[number]; index: number }) {
   return (
-    <section className="capabilities-section" id="capabilities">
-      <div className="shell">
-        <SectionIntro index="02" label="Capabilities" title="From first pixel to final process." />
-        <div className="services-grid">
-          {services.map((service, index) => (
-            <motion.article
-              className="service-card"
-              key={service.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: index * 0.06 }}
-            >
-              <div className="service-number">{service.number}</div>
-              <Braces size={22} />
-              <h3>{service.title}</h3>
-              <p>{service.description}</p>
-              <span className="service-line" />
-            </motion.article>
+    <article id={`project-${project.slug}`} className={`project-chapter project-${index + 1}`} style={{ "--project-accent": project.accent } as React.CSSProperties}>
+      <div className="chapter-sticky project-layout">
+        <div className="project-copy">
+          <p className="section-index">02.{index + 1} / {project.world}</p>
+          <div className="project-title-row">
+            <span>{project.number}</span>
+            <h3>{project.name}</h3>
+          </div>
+          <p className="project-badge">{project.badge}</p>
+          <p className="project-description">{project.description}</p>
+          <div className="project-decision">
+            <small>ENGINEERING FOCUS</small>
+            <p>{project.focus}</p>
+          </div>
+          <ul className="outcome-list">
+            {project.outcomes.map((outcome) => <li key={outcome}><Check size={14} />{outcome}</li>)}
+          </ul>
+          <div className="architecture-flow" aria-label={`${project.name} architecture`}>
+            {project.architecture[0].map((node, nodeIndex) => (
+              <span key={node}>{node}{nodeIndex < project.architecture[0].length - 1 ? <ChevronRight size={13} /> : null}</span>
+            ))}
+          </div>
+          <Link className="text-link" href={`/work/${project.slug}`}>Open case study <ArrowUpRight size={16} /></Link>
+        </div>
+        <div className="world-label">
+          <span>WORLD {project.number}</span>
+          <strong>{project.world}</strong>
+          <small>Procedural 3D system model</small>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function WorkChapter() {
+  return (
+    <section id="work" className="work-chapter chapter-section" aria-labelledby="work-title">
+      <div className="work-intro">
+        <p className="section-index">02 / PROJECT WORLDS</p>
+        <h2 id="work-title">Four systems.<br />Four living models.</h2>
+        <p>Each world turns a real engineering decision into space, motion, and interaction. The 3D is the explanation—not decoration.</p>
+      </div>
+      {projects.map((project, index) => <ProjectChapter key={project.slug} project={project} index={index} />)}
+    </section>
+  );
+}
+
+function CapabilityChapter() {
+  const [activeChain, setActiveChain] = useState(0);
+
+  return (
+    <section id="expertise" className="capability-chapter chapter-section" aria-labelledby="capability-title">
+      <div className="chapter-sticky split-layout">
+        <div className="chapter-copy">
+          <p className="section-index">03 / CAPABILITY CONSTELLATION</p>
+          <h2 id="capability-title">Tools matter.<br />Connections matter more.</h2>
+          <p className="section-lede">I work across the route a request actually travels—from the product surface to its data, automation, and deployment path.</p>
+          <div className="chain-list">
+            {capabilityChains.map((chain, index) => (
+              <button key={chain.join("-")} type="button" className={activeChain === index ? "is-active" : ""} onClick={() => setActiveChain(index)}>
+                <span>0{index + 1}</span>
+                <strong>{chain.join(" → ")}</strong>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="constellation-readout">
+          <small>ACTIVE CONNECTION</small>
+          {capabilityChains[activeChain].map((item, index) => (
+            <div key={item}><i>{String(index + 1).padStart(2, "0")}</i><span>{item}</span></div>
           ))}
         </div>
       </div>
-      <Marquee />
     </section>
   );
 }
 
-function Experience() {
+function PipelineChapter() {
+  const [stage, setStage] = useState(0);
+
   return (
-    <section className="experience-section shell" id="experience">
-      <SectionIntro index="03" label="Experience" title="Built through shipping." />
-      <div className="experience-list">
-        {experience.map((item, index) => (
-          <motion.article
-            className="experience-row"
-            key={`${item.company}-${item.period}`}
-            initial={{ opacity: 0, x: -24 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.5, delay: index * 0.08 }}
-          >
-            <span className="experience-index">0{index + 1}</span>
-            <div>
-              <p>{item.period}</p>
-              <h3>{item.role}</h3>
-            </div>
-            <div>
-              <p>At</p>
-              <h4>{item.company}</h4>
-            </div>
-            <div className="experience-skills">
-              {item.points.slice(0, 4).map((point) => (
-                <span key={point}>{point}</span>
-              ))}
-            </div>
-            <MoveUpRight size={22} />
-          </motion.article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Contact() {
-  return (
-    <section className="contact-section" id="contact">
-      <div className="shell contact-shell">
-        <div className="contact-meta">
-          <span>04 / Contact</span>
-          <p>Have a product to launch, a system to untangle, or a workflow begging to disappear?</p>
-        </div>
-
-        <motion.h2
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7 }}
-        >
-          Let&apos;s make
-          <span>it real.</span>
-        </motion.h2>
-
-        <div className="contact-actions">
-          <a className="email-link focus-ring" href={`mailto:${contact.email}`}>
-            <span>Start a conversation</span>
-            <strong>{contact.email}</strong>
-            <span className="email-arrow"><ArrowRight size={24} /></span>
-          </a>
-          <div className="social-links">
-            <a className="focus-ring" href={contact.github} target="_blank" rel="noreferrer">
-              <Github size={18} /> GitHub <ArrowUpRight size={15} />
-            </a>
-            <a className="focus-ring" href={contact.linkedin} target="_blank" rel="noreferrer">
-              <Linkedin size={18} /> LinkedIn <ArrowUpRight size={15} />
-            </a>
-            <a className="focus-ring" href={`mailto:${contact.email}`}>
-              <Mail size={18} /> Email <ArrowUpRight size={15} />
-            </a>
+    <section id="ai-pipeline" className="pipeline-chapter chapter-section" aria-labelledby="pipeline-title">
+      <div className="chapter-sticky split-layout">
+        <div className="chapter-copy">
+          <p className="section-index">04 / APPLIED INTELLIGENCE</p>
+          <h2 id="pipeline-title">AI with a job<br />to do.</h2>
+          <p className="section-lede">A useful AI feature is a grounded pipeline with clear inputs, guardrails, and an outcome the rest of the product can use.</p>
+          <div className="pipeline-tabs" role="tablist" aria-label="AI pipeline stages">
+            {pipelineStages.map((item, index) => (
+              <button key={item.label} type="button" role="tab" aria-selected={stage === index} onClick={() => setStage(index)}>
+                <span>0{index + 1}</span>{item.label}
+              </button>
+            ))}
+          </div>
+          <div className="pipeline-detail" role="tabpanel">
+            <strong>{pipelineStages[stage].label}</strong>
+            <p>{pipelineStages[stage].detail}</p>
           </div>
         </div>
+        <div className="scene-caption scene-caption-right">
+          <span>RAW → RETRIEVE → REASON → RESULT</span>
+          <strong>{pipelineStages[stage].label}</strong>
+          <small>Grounded context · Structured output</small>
+        </div>
       </div>
     </section>
   );
 }
 
-function Footer() {
+function PacketRun() {
+  const {
+    gameActive,
+    gameLane,
+    gameProgress,
+    gameResult,
+    moveGameLane,
+    soundEnabled,
+    startGame,
+    stopGame,
+  } = useExperience();
+
+  const gameStage = useMemo(() => {
+    if (gameProgress < 0.2) return "Interface";
+    if (gameProgress < 0.4) return "Auth / API";
+    if (gameProgress < 0.68) return "Cache / Queue";
+    if (gameProgress < 0.88) return "Workers";
+    return "Delivery";
+  }, [gameProgress]);
+
+  useEffect(() => {
+    if (!soundEnabled || gameResult === "idle") return;
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.frequency.value = gameResult === "success" ? 720 : 140;
+    gain.gain.setValueAtTime(0.045, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.12);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.12);
+    oscillator.addEventListener("ended", () => context.close());
+  }, [gameResult, soundEnabled]);
+
   return (
-    <footer className="site-footer">
-      <div className="shell">
-        <p>© 2026 Smit Gadhiya</p>
-        <p>Designed and engineered with intent.</p>
-        <a href="#top">Back to top <ArrowUpRight size={14} /></a>
+    <section id="packet-run" className="game-chapter chapter-section" aria-labelledby="game-title">
+      <div className="chapter-sticky game-layout">
+        <div className="game-copy">
+          <p className="section-index">05 / PACKET RUN</p>
+          <h2 id="game-title">Can you ship<br />the request?</h2>
+          <p>Guide Byte through the product stack. Switch lanes to dodge bugs, broken contracts, and blocked jobs on the way to production.</p>
+          <div className="game-actions">
+            <button className="button button-primary" type="button" onClick={startGame} disabled={gameActive}>
+              {gameResult === "success" ? <RotateCcw size={17} /> : <Play size={17} />}
+              {gameResult === "success" ? "Run again" : gameActive ? "Request in flight" : "Start Packet Run"}
+            </button>
+            {gameActive ? <button className="button button-quiet" type="button" onClick={stopGame}>Exit run</button> : <a className="button button-quiet" href="#experience">Skip game</a>}
+          </div>
+          <p className="game-note">Optional · 28 seconds · Arrow keys, A / D, or touch controls</p>
+        </div>
+
+        <div className={`game-console ${gameResult === "collision" ? "has-collision" : ""}`} aria-live="polite">
+          <div className="console-topline"><span>REQUEST_0X7B</span><span>{gameActive ? "IN FLIGHT" : gameResult === "success" ? "SHIPPED" : "READY"}</span></div>
+          <div className="console-progress"><span style={{ width: `${gameProgress * 100}%` }} /></div>
+          <div className="console-stage"><small>CURRENT LAYER</small><strong>{gameStage}</strong></div>
+          <div className="lane-indicator" aria-label={`Byte is in lane ${gameLane + 1}`}>
+            {[0, 1, 2].map((lane) => <span key={lane} className={gameLane === lane ? "is-active" : ""}>{lane + 1}</span>)}
+          </div>
+          <div className="touch-controls">
+            <button type="button" onClick={() => moveGameLane(-1)} disabled={!gameActive || gameLane === 0} aria-label="Move Byte left"><ArrowLeft /></button>
+            <button type="button" onClick={() => moveGameLane(1)} disabled={!gameActive || gameLane === 2} aria-label="Move Byte right"><ArrowRight /></button>
+          </div>
+          {gameResult === "collision" ? <p className="console-alert">BUG HIT · RETRYING ROUTE</p> : null}
+          {gameResult === "success" ? <div className="builder-stamp"><Check size={24} /><span>REQUEST SHIPPED</span><strong>SYSTEM BUILDER</strong><small>System healthy · Session verified</small></div> : null}
+        </div>
       </div>
-    </footer>
+    </section>
+  );
+}
+
+function ExperienceChapter() {
+  return (
+    <section id="experience" className="experience-chapter chapter-section" aria-labelledby="experience-title">
+      <div className="experience-inner">
+        <div className="experience-heading">
+          <p className="section-index">06 / COMMIT TRAIL</p>
+          <h2 id="experience-title">Built in production,<br />not just in theory.</h2>
+        </div>
+        <div className="timeline">
+          {experience.map((item, index) => (
+            <article key={item.company}>
+              <div className="timeline-marker"><span>0{index + 1}</span><i /></div>
+              <div className="timeline-role">
+                <small>{item.period}</small>
+                <h3>{item.role}</h3>
+                <p>{item.company}</p>
+              </div>
+              <ul>{item.points.slice(0, 6).map((point) => <li key={point}>{point}</li>)}</ul>
+            </article>
+          ))}
+        </div>
+        <div className="education-card">
+          <Braces size={24} />
+          <div><small>EDUCATION</small><strong>{education.degree}</strong><span>{education.school} · {education.period} · {education.cgpa}</span></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ContactChapter() {
+  return (
+    <section id="contact" className="contact-chapter chapter-section" aria-labelledby="contact-title">
+      <div className="contact-portal">
+        <p className="section-index">07 / CONTACT PORTAL</p>
+        <span className="contact-status"><i /> OPEN TO THE RIGHT BUILD</span>
+        <h2 id="contact-title">Have a system<br />worth building?</h2>
+        <p>Bring me the product, workflow, or stubborn technical problem. I’ll bring full-stack thinking and a bias toward shipping something useful.</p>
+        <a className="contact-email" href={`mailto:${contact.email}`}><Mail size={24} />{contact.email}<ArrowUpRight size={24} /></a>
+        <div className="contact-links">
+          <a href={contact.github} target="_blank" rel="noreferrer"><Github size={18} />GitHub<ArrowUpRight size={14} /></a>
+          <a href={contact.linkedin} target="_blank" rel="noreferrer"><Linkedin size={18} />LinkedIn<ArrowUpRight size={14} /></a>
+          <span><Code2 size={18} />Resume available on request</span>
+        </div>
+      </div>
+      <footer>
+        <span>SMIT GADHIYA © 2026</span>
+        <span>DESIGNED AS A LIVING SYSTEM</span>
+        <a href="#home">BACK TO WAKE <ArrowUpRight size={13} /></a>
+      </footer>
+    </section>
+  );
+}
+
+function PortfolioExperience() {
+  return (
+    <main>
+      <a className="skip-link" href="#work">Skip immersive intro</a>
+      <ExperienceCanvas />
+      <ExperienceHeader />
+      <ChapterRail />
+      <div className="static-fallback" aria-hidden="true"><Network size={22} /><span>Full-stack systems · Product interfaces · Applied AI</span></div>
+      <div className="page-content">
+        <Hero />
+        <StackChapter />
+        <WorkChapter />
+        <CapabilityChapter />
+        <PipelineChapter />
+        <PacketRun />
+        <ExperienceChapter />
+        <ContactChapter />
+      </div>
+    </main>
   );
 }
 
 export default function Portfolio() {
   return (
-    <>
-      <ProgressRail />
-      <Header />
-      <main>
-        <Hero />
-        <Work />
-        <Capabilities />
-        <Experience />
-        <Contact />
-      </main>
-      <Footer />
-    </>
+    <ExperienceProvider>
+      <PortfolioExperience />
+    </ExperienceProvider>
   );
 }

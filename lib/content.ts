@@ -1,7 +1,6 @@
 import {
   Bot,
   Braces,
-  BriefcaseBusiness,
   Cloud,
   Code2,
   Database,
@@ -23,11 +22,79 @@ export const contact = {
 
 export const navItems = [
   { label: "Home", href: "#home" },
+  { label: "Stack", href: "#stack" },
   { label: "Work", href: "#work" },
   { label: "Expertise", href: "#expertise" },
-  { label: "About", href: "#about" },
+  { label: "Play", href: "#packet-run" },
   { label: "Contact", href: "#contact" }
 ];
+
+export const chapters = [
+  { label: "Wake", href: "#home" },
+  { label: "Stack Core", href: "#stack" },
+  { label: "Project Worlds", href: "#work" },
+  { label: "Capabilities", href: "#expertise" },
+  { label: "AI Pipeline", href: "#ai-pipeline" },
+  { label: "Packet Run", href: "#packet-run" },
+  { label: "Commit Trail", href: "#experience" },
+  { label: "Contact Portal", href: "#contact" }
+] as const;
+
+export const stackLayers = [
+  {
+    label: "Interface",
+    detail: "Product surfaces that make dense systems feel direct, fast, and understandable.",
+    tools: ["React", "Next.js", "TypeScript"]
+  },
+  {
+    label: "API",
+    detail: "Typed contracts, authentication, authorization, integrations, and predictable failure modes.",
+    tools: ["Node.js", "Express", "REST"]
+  },
+  {
+    label: "Services",
+    detail: "Modular boundaries, event-driven flows, queues, workers, and background processing.",
+    tools: ["Microservices", "SQS/SNS", "BullMQ"]
+  },
+  {
+    label: "Data",
+    detail: "Durable storage, low-latency caching, indexing, and retrieval designed around the workload.",
+    tools: ["PostgreSQL", "MongoDB", "Redis"]
+  },
+  {
+    label: "Intelligence",
+    detail: "AI and automation that remove real work instead of adding novelty without utility.",
+    tools: ["OpenAI", "RAG", "n8n"]
+  }
+] as const;
+
+export const capabilityChains = [
+  ["Next.js", "API", "PostgreSQL"],
+  ["API", "Redis", "Fast response"],
+  ["Event", "Queue", "Worker"],
+  ["Document", "Embedding", "Vector DB", "RAG", "LLM"],
+  ["Webhook", "n8n", "API"],
+  ["Commit", "GitHub Actions", "Docker", "Cloud"]
+] as const;
+
+export const pipelineStages = [
+  {
+    label: "Raw",
+    detail: "Documents, domain records, events, and user intent enter through controlled product surfaces."
+  },
+  {
+    label: "Retrieve",
+    detail: "The system narrows context using structured filters, search, embeddings, and vector retrieval."
+  },
+  {
+    label: "Reason",
+    detail: "A model receives grounded context, clear constraints, and an output contract it can reliably follow."
+  },
+  {
+    label: "Result",
+    detail: "Validated structured output returns to the workflow, with humans kept in control where risk matters."
+  }
+] as const;
 
 export const capabilities = [
   "Full-Stack",
@@ -85,8 +152,13 @@ export const builds = [
 ];
 
 export type Project = {
+  slug: string;
+  number: string;
   name: string;
   badge: string;
+  world: string;
+  accent: string;
+  role: string;
   description: string;
   problem: string;
   solution: string;
@@ -100,8 +172,13 @@ export type Project = {
 
 export const projects: Project[] = [
   {
+    slug: "levelios",
+    number: "01",
     name: "Levelios",
     badge: "Project Management System",
+    world: "Orbital Organization",
+    accent: "#7B66FF",
+    role: "Full-stack product architecture",
     description:
       "A role-based project management platform designed to manage organizations, projects, teams, employees, and skill progression.",
     problem:
@@ -135,8 +212,13 @@ export const projects: Project[] = [
     focus: "Product architecture, RBAC, AI extraction, and team workflow design."
   },
   {
+    slug: "my-ayur",
+    number: "02",
     name: "My Ayur",
     badge: "Healthcare Platform",
+    world: "Pulse Network",
+    accent: "#00C7B5",
+    role: "Backend systems and scale",
     description:
       "A healthcare platform backend designed to serve thousands of users while processing large volumes of notifications.",
     problem:
@@ -164,8 +246,13 @@ export const projects: Project[] = [
     focus: "Backend architecture, asynchronous processing, caching, and operational throughput."
   },
   {
+    slug: "quiz-prep",
+    number: "03",
     name: "Quiz Prep",
     badge: "AI-Powered Exam Practice Platform",
+    world: "Question Foundry",
+    accent: "#CFFF47",
+    role: "AI workflow and full-stack delivery",
     description:
       "An exam preparation platform where administrators manage hundreds of question categories and automatically generate new questions using AI-powered workflows.",
     problem:
@@ -187,8 +274,13 @@ export const projects: Project[] = [
     focus: "AI workflow automation, admin UX, and structured exam content management."
   },
   {
+    slug: "nancypackes",
+    number: "04",
     name: "NancyPackes",
     badge: "Building Management System",
+    world: "Living Grid",
+    accent: "#FF6177",
+    role: "Frontend systems and data UX",
     description:
       "A modern React-based building management system handling property, lease, and agent data across 40+ residential properties.",
     problem:

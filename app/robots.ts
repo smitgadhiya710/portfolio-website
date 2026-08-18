@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/"
     },
-    sitemap: "https://smitgadhiya.com/sitemap.xml"
+    sitemap: "https://smit-gadhiya-portfolio.vansita-empiricinfot.chatgpt.site/sitemap.xml",
   };
 }
