@@ -4,49 +4,44 @@
 
 :root {
   color-scheme: dark;
-  --nav-height: 76px;
-  --color-background: 7 9 13;
-  --color-foreground: 244 247 251;
-  --color-muted: 153 163 178;
-  --color-panel: 13 17 24;
-  --color-panel-2: 17 23 34;
+  --color-background: 6 8 22;
+  --color-foreground: 245 247 255;
+  --color-muted: 151 160 184;
+  --color-panel: 13 18 38;
+  --color-panel-2: 20 27 54;
   --color-line: 255 255 255;
   --color-line-opacity: 0.1;
-  --color-accent: 82 210 188;
-  --color-accent-hover: 110 227 209;
-  --color-accent-foreground: 7 17 15;
-  --color-amber: 241 184 91;
-  --color-steel: 138 164 200;
+  --color-accent: 79 209 197;
+  --color-accent-hover: 103 232 219;
+  --color-accent-foreground: 5 22 25;
+  --color-amber: 251 191 36;
+  --color-steel: 139 164 255;
   --color-surface: 255 255 255;
-  --body-grid: rgba(255, 255, 255, 0.035);
-  --body-accent-glow: rgba(82, 210, 188, 0.09);
-  --body-amber-glow: rgba(241, 184, 91, 0.06);
-  --panel-gradient-start: rgba(17, 23, 34, 0.92);
-  --panel-gradient-end: rgba(9, 13, 20, 0.92);
-  --panel-shadow: rgba(0, 0, 0, 0.28);
+  --hero-solid: rgba(6, 8, 22, 1);
+  --hero-heavy: rgba(6, 8, 22, 0.94);
+  --hero-soft: rgba(6, 8, 22, 0.34);
+  --page-shadow: rgba(0, 0, 0, 0.32);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --color-background: 247 249 252;
+  --color-background: 244 247 255;
   --color-foreground: 15 23 42;
-  --color-muted: 71 85 105;
+  --color-muted: 77 88 112;
   --color-panel: 255 255 255;
-  --color-panel-2: 241 245 249;
+  --color-panel-2: 235 240 251;
   --color-line: 15 23 42;
-  --color-line-opacity: 0.12;
-  --color-accent: 15 118 110;
-  --color-accent-hover: 17 94 89;
+  --color-line-opacity: 0.11;
+  --color-accent: 13 126 116;
+  --color-accent-hover: 15 95 89;
   --color-accent-foreground: 255 255 255;
   --color-amber: 180 83 9;
-  --color-steel: 71 85 105;
+  --color-steel: 76 92 180;
   --color-surface: 15 23 42;
-  --body-grid: rgba(15, 23, 42, 0.045);
-  --body-accent-glow: rgba(15, 118, 110, 0.11);
-  --body-amber-glow: rgba(180, 83, 9, 0.07);
-  --panel-gradient-start: rgba(255, 255, 255, 0.96);
-  --panel-gradient-end: rgba(241, 245, 249, 0.96);
-  --panel-shadow: rgba(15, 23, 42, 0.12);
+  --hero-solid: rgba(244, 247, 255, 1);
+  --hero-heavy: rgba(244, 247, 255, 0.94);
+  --hero-soft: rgba(244, 247, 255, 0.3);
+  --page-shadow: rgba(30, 41, 59, 0.14);
 }
 
 * {
@@ -58,18 +53,17 @@ html {
 }
 
 body {
+  min-height: 100vh;
   margin: 0;
   overflow-x: hidden;
   background:
-    linear-gradient(var(--body-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--body-grid) 1px, transparent 1px),
-    radial-gradient(circle at 8% 0%, var(--body-accent-glow), transparent 32rem),
-    radial-gradient(circle at 92% 12%, var(--body-amber-glow), transparent 28rem),
+    radial-gradient(circle at 14% 12%, rgb(34 211 238 / 0.08), transparent 28rem),
+    radial-gradient(circle at 84% 30%, rgb(167 139 250 / 0.08), transparent 32rem),
+    radial-gradient(circle at 50% 82%, rgb(244 114 182 / 0.055), transparent 34rem),
     rgb(var(--color-background));
-  background-size: 42px 42px, 42px 42px, auto, auto, auto;
   color: rgb(var(--color-foreground));
   font-feature-settings: "ss01", "cv05";
-  transition: color 0.25s ease;
+  isolation: isolate;
 }
 
 a {
@@ -77,10 +71,7 @@ a {
   text-decoration: none;
 }
 
-button,
-input,
-textarea,
-select {
+button {
   font: inherit;
 }
 
@@ -89,23 +80,8 @@ select {
 }
 
 .container-shell {
-  width: min(1160px, calc(100% - 32px));
+  width: min(1180px, calc(100% - 32px));
   margin-inline: auto;
-}
-
-.panel {
-  border: 1px solid rgb(var(--color-line) / var(--color-line-opacity));
-  background: linear-gradient(180deg, var(--panel-gradient-start), var(--panel-gradient-end));
-  box-shadow: 0 18px 70px var(--panel-shadow);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.contact-banner {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--color-accent) / 0.14),
-    rgb(var(--color-surface) / 0.035)
-  );
 }
 
 .focus-ring {
@@ -114,6 +90,194 @@ select {
 
 .focus-ring:focus-visible {
   box-shadow: 0 0 0 3px rgb(var(--color-accent) / 0.42);
+}
+
+.brand-orb {
+  background:
+    radial-gradient(circle at 28% 25%, rgb(255 255 255 / 0.7), transparent 16%),
+    linear-gradient(135deg, #22d3ee, #8b5cf6 52%, #f472b6);
+  box-shadow: 0 0 28px rgb(34 211 238 / 0.22);
+}
+
+.hero-visual {
+  left: 25%;
+}
+
+.hero-vignette {
+  background:
+    linear-gradient(90deg, var(--hero-solid) 0%, var(--hero-heavy) 27%, var(--hero-soft) 54%, transparent 78%),
+    linear-gradient(0deg, var(--hero-solid) 0%, transparent 25%, transparent 78%, var(--hero-soft) 100%);
+}
+
+.hero-color {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(110px);
+  opacity: 0.13;
+  pointer-events: none;
+}
+
+.hero-color-one {
+  top: 10%;
+  right: 6%;
+  width: 22rem;
+  height: 22rem;
+  background: #22d3ee;
+}
+
+.hero-color-two {
+  right: 28%;
+  bottom: 8%;
+  width: 18rem;
+  height: 18rem;
+  background: #f472b6;
+}
+
+.color-text {
+  background: linear-gradient(105deg, #22d3ee 4%, #a78bfa 52%, #f472b6 96%);
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 28px rgb(139 92 246 / 0.12));
+}
+
+.project-card {
+  position: relative;
+  overflow: hidden;
+  background-color: rgb(var(--color-panel) / 0.72);
+  box-shadow: 0 24px 80px var(--page-shadow);
+  transform-style: preserve-3d;
+  backdrop-filter: blur(18px);
+}
+
+.project-card::before {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 84% 12%, var(--project-glow), transparent 45%);
+  content: "";
+  pointer-events: none;
+}
+
+.project-cyan {
+  --project-glow: rgb(34 211 238 / 0.24);
+}
+
+.project-violet {
+  --project-glow: rgb(167 139 250 / 0.25);
+}
+
+.project-pink {
+  --project-glow: rgb(244 114 182 / 0.23);
+}
+
+.project-amber {
+  --project-glow: rgb(251 191 36 / 0.21);
+}
+
+.project-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.capability-card {
+  background-color: rgb(var(--color-panel) / 0.68);
+  box-shadow: 0 20px 65px var(--page-shadow);
+  backdrop-filter: blur(16px);
+}
+
+.journey-card {
+  background:
+    linear-gradient(145deg, rgb(var(--color-surface) / 0.045), transparent 44%),
+    rgb(var(--color-panel) / 0.55);
+  box-shadow: 0 20px 60px var(--page-shadow);
+}
+
+.contact-world {
+  border: 1px solid rgb(255 255 255 / 0.15);
+  background:
+    radial-gradient(circle at 18% 20%, rgb(34 211 238 / 0.72), transparent 36%),
+    radial-gradient(circle at 82% 25%, rgb(244 114 182 / 0.62), transparent 38%),
+    linear-gradient(135deg, #172554 0%, #5b21b6 48%, #9d174d 100%);
+  box-shadow: 0 35px 120px rgb(59 7 100 / 0.3);
+}
+
+.contact-world::before {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.055) 1px, transparent 1px);
+  background-size: 34px 34px;
+  content: "";
+  mask-image: radial-gradient(circle at center, black, transparent 80%);
+}
+
+.contact-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(70px);
+  opacity: 0.38;
+}
+
+.contact-glow-one {
+  top: -6rem;
+  left: 8%;
+  width: 18rem;
+  height: 18rem;
+  background: #67e8f9;
+}
+
+.contact-glow-two {
+  right: 5%;
+  bottom: -7rem;
+  width: 20rem;
+  height: 20rem;
+  background: #f9a8d4;
+}
+
+.cursor-follower {
+  display: none;
+  box-shadow: 0 0 16px rgb(var(--color-accent) / 0.12);
+  backdrop-filter: blur(1px);
+}
+
+@media (pointer: fine) and (min-width: 768px) {
+  .cursor-follower {
+    display: block;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-visual {
+    left: 0;
+    opacity: 0.62;
+  }
+
+  .hero-vignette {
+    background:
+      linear-gradient(90deg, var(--hero-heavy) 0%, var(--hero-heavy) 42%, var(--hero-soft) 80%),
+      linear-gradient(0deg, var(--hero-solid) 0%, transparent 38%, var(--hero-soft) 100%);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-visual {
+    top: auto;
+    right: auto;
+    bottom: -2%;
+    left: -30%;
+    width: 160%;
+    height: 42%;
+    opacity: 0.9;
+  }
+
+  .hero-vignette {
+    background:
+      linear-gradient(180deg, var(--hero-solid) 0%, var(--hero-heavy) 46%, transparent 72%, var(--hero-soft) 100%),
+      linear-gradient(90deg, var(--hero-soft), transparent 48%, var(--hero-soft));
+  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {

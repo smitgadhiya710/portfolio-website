@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export const contact = {
-  email: "",
+  email: "hello@smitgadhiya.com",
   github: "https://github.com/smitgadhiya",
   linkedin: "https://linkedin.com/in/smitgadhiya",
   availability: true
