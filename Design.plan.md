@@ -352,22 +352,22 @@ Byte must ship one user request through a stable architecture before the latency
 
 #### Duration
 
-- 25–45 seconds.
+- 25 seconds per run.
 - One short level.
-- Optional replay for a faster time.
+- Optional replay for a higher build score.
 
 #### Flow
 
-1. Collect the Interface token.
-2. Pass through Auth/API.
-3. Choose Cache for a repeated read or Queue for background work.
-4. Avoid corrupted packets (“bugs”).
-5. Deliver structured data to the final user node.
+1. Byte enters through the Interface layer with 100% request integrity.
+2. The route advances through Auth/API, Cache/Queue, Workers, and Delivery.
+3. Eight corrupted packets (“bugs”) occupy changing lanes.
+4. Each clean dodge adds to the build score; each collision removes 25% integrity.
+5. Deliver the request before integrity reaches zero.
 
 #### Controls
 
 - Desktop: arrow keys or `A/D`, plus pointer drag.
-- Mobile: horizontal drag or two large left/right controls.
+- Pointer/mobile: horizontal swipe or two large left/right controls.
 - Keyboard instructions appear before play.
 - `Skip game` and `Exit` remain visible.
 - Pause on lost focus.
@@ -804,4 +804,3 @@ The recommended direction is:
 > **A cinematic, persistent 3D “Stack Core” journey that physically reveals Smit’s complete engineering stack, docks into four project worlds, becomes a playable request pipeline, and resolves into a contact portal.**
 
 This direction is more defensible and memorable than a collection of trendy 3D objects because the visual system is inseparable from Smit’s actual story: product interfaces on the outside, reliable architecture underneath, and useful intelligence at the center.
-

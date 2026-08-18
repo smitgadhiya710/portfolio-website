@@ -164,6 +164,7 @@ export type Project = {
   solution: string;
   tech: string[];
   highlights: string[];
+  modelSignals: string[];
   outcomes: string[];
   architecture: string[][];
   secondaryArchitecture?: string[][];
@@ -206,6 +207,7 @@ export const projects: Project[] = [
       "Manager approval workflows",
       "Organization-level dashboards"
     ],
+    modelSignals: ["RBAC · 3 roles", "AI resume parsing", "Approval orbit"],
     outcomes: ["Made organization, project, team, and skill workflows manageable in one SaaS-style system."],
     architecture: [["Frontend", "API", "Backend", "Redis", "Database"]],
     secondaryArchitecture: [["Resume", "OpenAI", "Structured Candidate Data"]],
@@ -236,6 +238,7 @@ export const projects: Project[] = [
       "CI/CD with GitHub Actions",
       "Backend API optimization"
     ],
+    modelSignals: ["7K+ users", "20K+ alerts / day", "40–50% faster API"],
     outcomes: [
       "7,000+ users",
       "20,000+ notifications/day",
@@ -269,6 +272,7 @@ export const projects: Project[] = [
       "n8n workflow",
       "OpenAI API integration"
     ],
+    modelSignals: ["~400 categories", "n8n automation", "AI generation"],
     outcomes: ["Reduced manual question creation through an AI-powered workflow controlled by admins."],
     architecture: [["Category + Subcategory + Count", "n8n Workflow", "OpenAI", "Generated Questions", "Database"]],
     focus: "AI workflow automation, admin UX, and structured exam content management."
@@ -300,6 +304,7 @@ export const projects: Project[] = [
       "Role-based UI rendering",
       "Four user roles"
     ],
+    modelSignals: ["40+ properties", "4 user roles", "Reusable data grid"],
     outcomes: ["Created reusable frontend patterns for property, lease, and agent data workflows."],
     architecture: [["Role-Based UI", "Reusable Table", "Property Data", "Lease Data", "Excel Export"]],
     focus: "Frontend engineering, reusable component architecture, and operational data interfaces."

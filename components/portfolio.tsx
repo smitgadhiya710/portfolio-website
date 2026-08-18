@@ -24,7 +24,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ExperienceCanvas } from "@/components/immersive/experience-canvas";
 import {
@@ -210,7 +210,10 @@ function ProjectChapter({ project, index }: { project: (typeof projects)[number]
         <div className="world-label">
           <span>WORLD {project.number}</span>
           <strong>{project.world}</strong>
-          <small>Procedural 3D system model</small>
+          <small>Live system model · Scroll linked</small>
+          <div className="model-signals" aria-label={`${project.name} model signals`}>
+            {project.modelSignals.map((signal) => <i key={signal}>{signal}</i>)}
+          </div>
         </div>
       </div>
     </article>
@@ -293,11 +296,14 @@ function PipelineChapter() {
 }
 
 function PacketRun() {
+  const dragStart = useRef<number | null>(null);
   const {
     gameActive,
+    gameIntegrity,
     gameLane,
     gameProgress,
     gameResult,
+    gameScore,
     moveGameLane,
     soundEnabled,
     startGame,
@@ -312,6 +318,30 @@ function PacketRun() {
     return "Delivery";
   }, [gameProgress]);
 
+  const canRestart = gameResult === "success" || gameResult === "failed";
+  const runStatus = gameActive
+    ? "IN FLIGHT"
+    : gameResult === "success"
+      ? "SHIPPED"
+      : gameResult === "failed"
+        ? "DROPPED"
+        : "READY";
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!gameActive) return;
+    dragStart.current = event.clientX;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (dragStart.current === null) return;
+    const distance = event.clientX - dragStart.current;
+    dragStart.current = null;
+    if (Math.abs(distance) >= 32) {
+      moveGameLane(distance > 0 ? 1 : -1);
+    }
+  };
+
   useEffect(() => {
     if (!soundEnabled || gameResult === "idle") return;
     const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -319,7 +349,7 @@ function PacketRun() {
     const context = new AudioContextClass();
     const oscillator = context.createOscillator();
     const gain = context.createGain();
-    oscillator.frequency.value = gameResult === "success" ? 720 : 140;
+    oscillator.frequency.value = gameResult === "success" ? 720 : gameResult === "failed" ? 95 : 140;
     gain.gain.setValueAtTime(0.045, context.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.12);
     oscillator.connect(gain);
@@ -338,18 +368,28 @@ function PacketRun() {
           <p>Guide Byte through the product stack. Switch lanes to dodge bugs, broken contracts, and blocked jobs on the way to production.</p>
           <div className="game-actions">
             <button className="button button-primary" type="button" onClick={startGame} disabled={gameActive}>
-              {gameResult === "success" ? <RotateCcw size={17} /> : <Play size={17} />}
-              {gameResult === "success" ? "Run again" : gameActive ? "Request in flight" : "Start Packet Run"}
+              {canRestart ? <RotateCcw size={17} /> : <Play size={17} />}
+              {gameResult === "success" ? "Run again" : gameResult === "failed" ? "Retry route" : gameActive ? "Request in flight" : "Start Packet Run"}
             </button>
             {gameActive ? <button className="button button-quiet" type="button" onClick={stopGame}>Exit run</button> : <a className="button button-quiet" href="#experience">Skip game</a>}
           </div>
-          <p className="game-note">Optional · 28 seconds · Arrow keys, A / D, or touch controls</p>
+          <p className="game-note">Optional · 25 seconds · Arrow keys, A / D, or touch controls</p>
         </div>
 
-        <div className={`game-console ${gameResult === "collision" ? "has-collision" : ""}`} aria-live="polite">
-          <div className="console-topline"><span>REQUEST_0X7B</span><span>{gameActive ? "IN FLIGHT" : gameResult === "success" ? "SHIPPED" : "READY"}</span></div>
+        <div
+          className={`game-console ${gameResult === "collision" ? "has-collision" : ""} ${gameResult === "failed" ? "has-failed" : ""}`}
+          aria-live="polite"
+          onPointerDown={handlePointerDown}
+          onPointerCancel={() => { dragStart.current = null; }}
+          onPointerUp={handlePointerUp}
+        >
+          <div className="console-topline"><span>REQUEST_0X7B</span><span>{runStatus}</span></div>
           <div className="console-progress"><span style={{ width: `${gameProgress * 100}%` }} /></div>
           <div className="console-stage"><small>CURRENT LAYER</small><strong>{gameStage}</strong></div>
+          <div className="console-metrics">
+            <div><small>INTEGRITY</small><strong>{gameIntegrity}%</strong></div>
+            <div><small>BUILD SCORE</small><strong>{gameScore.toLocaleString("en-US")}</strong></div>
+          </div>
           <div className="lane-indicator" aria-label={`Byte is in lane ${gameLane + 1}`}>
             {[0, 1, 2].map((lane) => <span key={lane} className={gameLane === lane ? "is-active" : ""}>{lane + 1}</span>)}
           </div>
@@ -359,6 +399,7 @@ function PacketRun() {
           </div>
           {gameResult === "collision" ? <p className="console-alert">BUG HIT · RETRYING ROUTE</p> : null}
           {gameResult === "success" ? <div className="builder-stamp"><Check size={24} /><span>REQUEST SHIPPED</span><strong>SYSTEM BUILDER</strong><small>System healthy · Session verified</small></div> : null}
+          {gameResult === "failed" ? <div className="builder-stamp builder-stamp-failed"><X size={24} /><span>REQUEST DROPPED</span><strong>ROUTE DEGRADED</strong><small>Integrity exhausted · Rebuild the path</small></div> : null}
         </div>
       </div>
     </section>

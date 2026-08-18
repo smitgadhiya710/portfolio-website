@@ -98,8 +98,19 @@ a {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 68% 46%, transparent 0, rgba(6, 7, 11, 0.08) 32%, rgba(6, 7, 11, 0.64) 77%),
-    linear-gradient(90deg, rgba(6, 7, 11, 0.84) 0%, rgba(6, 7, 11, 0.18) 46%, rgba(6, 7, 11, 0.12) 100%);
+    radial-gradient(circle at 70% 46%, transparent 0 38%, rgba(6, 7, 11, 0.18) 68%, rgba(6, 7, 11, 0.5) 100%),
+    linear-gradient(90deg, rgba(6, 7, 11, 0.9) 0%, rgba(6, 7, 11, 0.32) 38%, rgba(6, 7, 11, 0.05) 72%, rgba(6, 7, 11, 0.16) 100%);
+}
+
+.canvas-chromatic-edge {
+  position: absolute;
+  inset: 0;
+  opacity: 0.7;
+  background:
+    linear-gradient(90deg, rgba(123, 102, 255, 0.18), transparent 0.22rem) left / 0.22rem 100% no-repeat,
+    linear-gradient(180deg, rgba(98, 217, 255, 0.2), transparent 0.28rem) top / 100% 0.28rem no-repeat,
+    radial-gradient(circle at 100% 42%, rgba(98, 217, 255, 0.12), transparent 19rem);
+  mix-blend-mode: screen;
 }
 
 .webgl-fallback {
@@ -546,6 +557,10 @@ a {
   gap: clamp(3rem, 9vw, 10rem);
 }
 
+.game-layout {
+  grid-template-columns: minmax(20rem, 1fr) minmax(26rem, 1fr);
+}
+
 .stack-chapter {
   min-height: 190vh;
   border-top: 1px solid var(--line);
@@ -696,6 +711,46 @@ a {
 .world-label small {
   color: var(--mineral-muted);
   font-size: 0.62rem;
+}
+
+.world-label {
+  min-width: 17rem;
+  border: 1px solid color-mix(in srgb, var(--project-accent) 24%, transparent);
+  border-left: 2px solid var(--project-accent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--project-accent) 8%, transparent), transparent 55%),
+    rgba(6, 7, 11, 0.34);
+  box-shadow: 0 1.2rem 4rem rgba(0, 0, 0, 0.2);
+}
+
+.model-signals {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.3rem;
+  margin-top: 0.55rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(242, 240, 232, 0.09);
+}
+
+.model-signals i {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgba(242, 240, 232, 0.68);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.5rem;
+  font-style: normal;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.model-signals i::before {
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: 50%;
+  background: var(--project-accent);
+  box-shadow: 0 0 0.7rem var(--project-accent);
+  content: "";
 }
 
 .work-chapter {
@@ -1000,13 +1055,17 @@ a {
   position: relative;
   align-self: center;
   justify-self: end;
-  width: min(29rem, 100%);
-  min-height: 27rem;
-  padding: 1.3rem;
+  width: min(22rem, 100%);
+  min-height: 22rem;
+  padding: 1.1rem;
   border: 1px solid rgba(98, 217, 255, 0.3);
-  background: rgba(6, 7, 11, 0.7);
-  box-shadow: inset 0 0 4rem rgba(98, 217, 255, 0.04), 0 2rem 5rem rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(18px);
+  background:
+    linear-gradient(135deg, rgba(98, 217, 255, 0.045), transparent 42%),
+    rgba(6, 7, 11, 0.42);
+  box-shadow: inset 0 0 4rem rgba(98, 217, 255, 0.035), 0 2rem 5rem rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px) saturate(1.15);
+  touch-action: pan-y;
+  user-select: none;
   transition: border-color 140ms ease, transform 140ms ease;
 }
 
@@ -1038,6 +1097,10 @@ a {
   transform: translateX(3px);
 }
 
+.game-console.has-failed {
+  border-color: rgba(255, 97, 119, 0.62);
+}
+
 .console-topline {
   display: flex;
   justify-content: space-between;
@@ -1065,25 +1128,58 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  margin-top: 1.7rem;
+  margin-top: 1rem;
 }
 
 .console-stage strong {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   letter-spacing: -0.03em;
+}
+
+.console-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+
+.console-metrics div {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(242, 240, 232, 0.08);
+  background: rgba(242, 240, 232, 0.025);
+}
+
+.console-metrics small,
+.console-metrics strong {
+  display: block;
+}
+
+.console-metrics small {
+  color: rgba(242, 240, 232, 0.36);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.46rem;
+  letter-spacing: 0.09em;
+}
+
+.console-metrics strong {
+  margin-top: 0.25rem;
+  color: var(--data);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.72rem;
+  font-weight: 560;
 }
 
 .lane-indicator {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
-  margin-top: 2.4rem;
+  margin-top: 0.8rem;
 }
 
 .lane-indicator span {
   display: grid;
   place-items: center;
-  height: 5rem;
+  height: 3.25rem;
   border: 1px solid var(--line);
   color: rgba(242, 240, 232, 0.28);
   font-family: var(--font-geist-mono), monospace;
@@ -1130,7 +1226,7 @@ a {
 
 .builder-stamp {
   position: absolute;
-  inset: 4.6rem 1.3rem 1.3rem;
+  inset: 3.6rem 1.1rem 1.1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1139,6 +1235,14 @@ a {
   color: var(--lime);
   background: rgba(6, 7, 11, 0.94);
   text-align: center;
+}
+
+.builder-stamp-failed {
+  border-color: rgba(255, 97, 119, 0.55);
+  color: var(--coral);
+  background:
+    radial-gradient(circle at 50% 25%, rgba(255, 97, 119, 0.12), transparent 46%),
+    rgba(6, 7, 11, 0.95);
 }
 
 .builder-stamp span {
@@ -1951,8 +2055,8 @@ a {
 
   .canvas-vignette {
     background:
-      linear-gradient(180deg, rgba(6, 7, 11, 0.2) 0%, rgba(6, 7, 11, 0.43) 34%, rgba(6, 7, 11, 0.86) 100%),
-      radial-gradient(circle at 60% 32%, transparent, rgba(6, 7, 11, 0.25) 65%);
+      linear-gradient(180deg, rgba(6, 7, 11, 0.12) 0%, rgba(6, 7, 11, 0.3) 36%, rgba(6, 7, 11, 0.82) 100%),
+      radial-gradient(circle at 58% 30%, transparent 0 25%, rgba(6, 7, 11, 0.22) 72%);
   }
 
   .hero {
@@ -2110,11 +2214,11 @@ a {
   }
 
   .game-chapter .chapter-sticky {
-    padding-bottom: 34rem;
+    padding-bottom: 29rem;
   }
 
   .game-console {
-    min-height: 27rem;
+    min-height: 22rem;
   }
 
   .experience-chapter {
@@ -2248,6 +2352,10 @@ a {
   }
 
   .canvas-vignette {
+    display: none;
+  }
+
+  .canvas-chromatic-edge {
     display: none;
   }
 }

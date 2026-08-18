@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: CaseStudyPageProps): Promise<
     openGraph: {
       title: `${project.name} — ${project.world}`,
       description: project.description,
-      images: ["/og.png"],
+      images: ["/og-reactor-v2.png"],
     },
   };
 }

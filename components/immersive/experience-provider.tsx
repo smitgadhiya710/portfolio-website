@@ -17,14 +17,17 @@ import {
 import { chapters, projects } from "@/lib/content";
 
 export type QualityTier = "high" | "balanced" | "reduced" | "static";
+export type GameResult = "idle" | "success" | "collision" | "failed";
 
 type ExperienceContextValue = {
   activeChapter: number;
   activeProject: number;
   gameActive: boolean;
+  gameIntegrity: number;
   gameLane: number;
   gameProgress: number;
-  gameResult: "idle" | "success" | "collision";
+  gameResult: GameResult;
+  gameScore: number;
   motionEnabled: boolean;
   moveGameLane: (direction: number) => void;
   progress: MutableRefObject<number>;
@@ -61,9 +64,11 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
   const [motionEnabled, setMotionEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [gameActive, setGameActive] = useState(false);
+  const [gameIntegrity, setGameIntegrity] = useState(100);
   const [gameLane, setGameLane] = useState(1);
   const [gameProgress, setGameProgress] = useState(0);
-  const [gameResult, setGameResult] = useState<"idle" | "success" | "collision">("idle");
+  const [gameResult, setGameResult] = useState<GameResult>("idle");
+  const [gameScore, setGameScore] = useState(0);
   const gameLaneRef = useRef(1);
 
   useEffect(() => {
@@ -134,6 +139,10 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       }
       if (event.key === "Escape") {
         setGameActive(false);
+        setGameProgress(0);
+        setGameIntegrity(100);
+        setGameResult("idle");
+        setGameScore(0);
       }
     };
 
@@ -146,29 +155,66 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
 
     const startedAt = performance.now();
     let animationFrame = 0;
-    const duration = 28000;
+    const duration = 25000;
     const obstacles = [
-      { at: 0.19, lane: 0 },
-      { at: 0.34, lane: 1 },
-      { at: 0.51, lane: 2 },
-      { at: 0.69, lane: 1 },
-      { at: 0.83, lane: 0 },
+      { at: 0.12, lane: 0 },
+      { at: 0.23, lane: 2 },
+      { at: 0.35, lane: 1 },
+      { at: 0.47, lane: 0 },
+      { at: 0.58, lane: 2 },
+      { at: 0.7, lane: 1 },
+      { at: 0.82, lane: 0 },
+      { at: 0.91, lane: 2 },
     ];
     const passed = new Set<number>();
+    let bonus = 0;
+    let integrity = 100;
+    let collisionTimeout = 0;
+    let pausedAt: number | null = null;
+    let pausedDuration = 0;
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        pausedAt = performance.now();
+      } else if (pausedAt !== null) {
+        pausedDuration += performance.now() - pausedAt;
+        pausedAt = null;
+      }
+    };
 
     const tick = (now: number) => {
-      const nextProgress = Math.min(1, (now - startedAt) / duration);
+      if (document.hidden) {
+        animationFrame = requestAnimationFrame(tick);
+        return;
+      }
+
+      const nextProgress = Math.min(1, (now - startedAt - pausedDuration) / duration);
       setGameProgress(nextProgress);
+      setGameScore(Math.round(nextProgress * 3200) + bonus);
 
       obstacles.forEach((obstacle, index) => {
         if (!passed.has(index) && nextProgress >= obstacle.at) {
           passed.add(index);
           if (gameLaneRef.current === obstacle.lane) {
+            integrity = Math.max(0, integrity - 25);
+            setGameIntegrity(integrity);
             setGameResult("collision");
-            setTimeout(() => setGameResult("idle"), 700);
+            window.clearTimeout(collisionTimeout);
+            collisionTimeout = window.setTimeout(
+              () => setGameResult((result) => (result === "collision" ? "idle" : result)),
+              620,
+            );
+          } else {
+            bonus += 275;
           }
         }
       });
+
+      if (integrity <= 0) {
+        setGameResult("failed");
+        setGameActive(false);
+        return;
+      }
 
       if (nextProgress >= 1) {
         setGameResult("success");
@@ -179,21 +225,30 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       animationFrame = requestAnimationFrame(tick);
     };
 
+    document.addEventListener("visibilitychange", onVisibilityChange);
     animationFrame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animationFrame);
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.clearTimeout(collisionTimeout);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [gameActive]);
 
   const startGame = useCallback(() => {
     setGameProgress(0);
+    setGameIntegrity(100);
     setGameLane(1);
     setGameResult("idle");
+    setGameScore(0);
     setGameActive(true);
   }, []);
 
   const stopGame = useCallback(() => {
     setGameActive(false);
     setGameProgress(0);
+    setGameIntegrity(100);
     setGameResult("idle");
+    setGameScore(0);
   }, []);
 
   const value = useMemo(
@@ -201,9 +256,11 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       activeChapter,
       activeProject,
       gameActive,
+      gameIntegrity,
       gameLane,
       gameProgress,
       gameResult,
+      gameScore,
       motionEnabled,
       moveGameLane: moveLane,
       progress,
@@ -218,9 +275,11 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       activeChapter,
       activeProject,
       gameActive,
+      gameIntegrity,
       gameLane,
       gameProgress,
       gameResult,
+      gameScore,
       motionEnabled,
       moveLane,
       quality,

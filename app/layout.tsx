@@ -29,7 +29,9 @@ export const metadata: Metadata = {
     siteName: "Smit Gadhiya",
     images: [
       {
-        url: "/og.png",
+        url: "/og-reactor-v2.png",
+        width: 1731,
+        height: 909,
         alt: "Smit Gadhiya — Full Stack. Full Depth.",
       },
     ],
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Smit Gadhiya — Full Stack. Full Depth.",
     description: "Product interfaces, backend systems, and AI workflows built for the real world.",
-    images: ["/og.png"],
+    images: ["/og-reactor-v2.png"],
   },
   icons: {
     icon: "/favicon.svg",
