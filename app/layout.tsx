@@ -2,6 +2,23 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+const themeInitializationScript = `
+  (() => {
+    try {
+      const storedTheme = localStorage.getItem("portfolio-theme");
+      const theme = storedTheme === "light" || storedTheme === "dark"
+        ? storedTheme
+        : window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      document.documentElement.dataset.theme = theme;
+    } catch {
+      document.documentElement.dataset.theme = "dark";
+    }
+  })();
+`;
+
 const geist = Geist({
   variable: "--font-inter",
   subsets: ["latin"]
@@ -38,7 +55,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
+      </head>
       <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
         {children}
       </body>

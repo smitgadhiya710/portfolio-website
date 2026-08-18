@@ -5,6 +5,48 @@
 :root {
   color-scheme: dark;
   --nav-height: 76px;
+  --color-background: 7 9 13;
+  --color-foreground: 244 247 251;
+  --color-muted: 153 163 178;
+  --color-panel: 13 17 24;
+  --color-panel-2: 17 23 34;
+  --color-line: 255 255 255;
+  --color-line-opacity: 0.1;
+  --color-accent: 82 210 188;
+  --color-accent-hover: 110 227 209;
+  --color-accent-foreground: 7 17 15;
+  --color-amber: 241 184 91;
+  --color-steel: 138 164 200;
+  --color-surface: 255 255 255;
+  --body-grid: rgba(255, 255, 255, 0.035);
+  --body-accent-glow: rgba(82, 210, 188, 0.09);
+  --body-amber-glow: rgba(241, 184, 91, 0.06);
+  --panel-gradient-start: rgba(17, 23, 34, 0.92);
+  --panel-gradient-end: rgba(9, 13, 20, 0.92);
+  --panel-shadow: rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-background: 247 249 252;
+  --color-foreground: 15 23 42;
+  --color-muted: 71 85 105;
+  --color-panel: 255 255 255;
+  --color-panel-2: 241 245 249;
+  --color-line: 15 23 42;
+  --color-line-opacity: 0.12;
+  --color-accent: 15 118 110;
+  --color-accent-hover: 17 94 89;
+  --color-accent-foreground: 255 255 255;
+  --color-amber: 180 83 9;
+  --color-steel: 71 85 105;
+  --color-surface: 15 23 42;
+  --body-grid: rgba(15, 23, 42, 0.045);
+  --body-accent-glow: rgba(15, 118, 110, 0.11);
+  --body-amber-glow: rgba(180, 83, 9, 0.07);
+  --panel-gradient-start: rgba(255, 255, 255, 0.96);
+  --panel-gradient-end: rgba(241, 245, 249, 0.96);
+  --panel-shadow: rgba(15, 23, 42, 0.12);
 }
 
 * {
@@ -19,14 +61,15 @@ body {
   margin: 0;
   overflow-x: hidden;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 8% 0%, rgba(82, 210, 188, 0.09), transparent 32rem),
-    radial-gradient(circle at 92% 12%, rgba(241, 184, 91, 0.06), transparent 28rem),
-    #07090d;
+    linear-gradient(var(--body-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--body-grid) 1px, transparent 1px),
+    radial-gradient(circle at 8% 0%, var(--body-accent-glow), transparent 32rem),
+    radial-gradient(circle at 92% 12%, var(--body-amber-glow), transparent 28rem),
+    rgb(var(--color-background));
   background-size: 42px 42px, 42px 42px, auto, auto, auto;
-  color: #f4f7fb;
+  color: rgb(var(--color-foreground));
   font-feature-settings: "ss01", "cv05";
+  transition: color 0.25s ease;
 }
 
 a {
@@ -42,7 +85,7 @@ select {
 }
 
 ::selection {
-  background: rgba(82, 210, 188, 0.35);
+  background: rgb(var(--color-accent) / 0.35);
 }
 
 .container-shell {
@@ -51,9 +94,18 @@ select {
 }
 
 .panel {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(180deg, rgba(17, 23, 34, 0.92), rgba(9, 13, 20, 0.92));
-  box-shadow: 0 18px 70px rgba(0, 0, 0, 0.28);
+  border: 1px solid rgb(var(--color-line) / var(--color-line-opacity));
+  background: linear-gradient(180deg, var(--panel-gradient-start), var(--panel-gradient-end));
+  box-shadow: 0 18px 70px var(--panel-shadow);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.contact-banner {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--color-accent) / 0.14),
+    rgb(var(--color-surface) / 0.035)
+  );
 }
 
 .focus-ring {
@@ -61,7 +113,7 @@ select {
 }
 
 .focus-ring:focus-visible {
-  box-shadow: 0 0 0 3px rgba(82, 210, 188, 0.42);
+  box-shadow: 0 0 0 3px rgb(var(--color-accent) / 0.42);
 }
 
 @media (prefers-reduced-motion: reduce) {

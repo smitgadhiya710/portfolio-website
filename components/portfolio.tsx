@@ -12,7 +12,9 @@ import {
   Mail,
   Menu,
   MessageSquare,
+  Moon,
   Send,
+  Sun,
   X
 } from "lucide-react";
 import {
@@ -38,6 +40,8 @@ const fadeUp = {
   transition: fadeTransition
 };
 
+type Theme = "light" | "dark";
+
 function SectionIntro({ label, title, subtitle }: { label?: string; title: string; subtitle: string }) {
   return (
     <motion.div className="mb-10 max-w-2xl" {...fadeUp}>
@@ -59,9 +63,9 @@ function ButtonLink({
 }) {
   const className =
     variant === "primary"
-      ? "bg-accent text-[#07110f] hover:-translate-y-0.5 hover:bg-[#6ee3d1]"
+      ? "bg-accent text-accent-foreground hover:-translate-y-0.5 hover:bg-accent-hover"
       : variant === "secondary"
-        ? "border border-line bg-white/[0.04] text-foreground hover:-translate-y-0.5 hover:border-accent/60"
+        ? "border border-line bg-surface/[0.04] text-foreground hover:-translate-y-0.5 hover:border-accent/60"
         : "text-muted hover:text-foreground";
 
   return (
@@ -74,9 +78,49 @@ function ButtonLink({
   );
 }
 
+function ThemeToggle({
+  theme,
+  onToggle,
+  expanded = false
+}: {
+  theme: Theme | null;
+  onToggle: () => void;
+  expanded?: boolean;
+}) {
+  const nextTheme = theme === "light" ? "dark" : "light";
+  const label = theme ? `Switch to ${nextTheme} theme` : "Toggle color theme";
+  const Icon = theme === "light" ? Moon : Sun;
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={label}
+      title={label}
+      className={
+        expanded
+          ? "focus-ring flex min-h-11 w-full items-center justify-between rounded-xl border border-line bg-surface/[0.035] px-3 text-sm text-foreground transition hover:border-accent/50 hover:bg-surface/[0.06]"
+          : "focus-ring inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface/[0.04] text-muted transition hover:border-accent/50 hover:bg-surface/[0.07] hover:text-foreground"
+      }
+    >
+      {expanded ? (
+        <>
+          <span className="inline-flex items-center gap-2 font-medium">
+            <Icon size={17} /> Appearance
+          </span>
+          <span className="text-xs text-muted">{theme === "light" ? "Dark mode" : "Light mode"}</span>
+        </>
+      ) : (
+        <Icon size={18} />
+      )}
+    </button>
+  );
+}
+
 function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -85,33 +129,64 @@ function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
+  }, []);
+
+  function toggleTheme() {
+    const activeTheme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    const nextTheme = activeTheme === "light" ? "dark" : "light";
+
+    document.documentElement.dataset.theme = nextTheme;
+    setTheme(nextTheme);
+
+    try {
+      window.localStorage.setItem("portfolio-theme", nextTheme);
+    } catch {
+      document.documentElement.dataset.theme = nextTheme;
+    }
+  }
+
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-40 transition ${
-        scrolled ? "border-b border-line bg-background/82 py-2 backdrop-blur-xl" : "py-4"
-      }`}
-    >
-      <nav className="container-shell flex items-center justify-between">
-        <a href="#home" className="focus-ring rounded-md text-sm font-semibold tracking-wide">
-          Smit Gadhiya
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-40">
+      <nav
+        className={`container-shell pointer-events-auto mt-3 grid min-h-14 grid-cols-[1fr_auto] items-center rounded-2xl border border-line px-3 backdrop-blur-xl transition-all lg:grid-cols-[auto_1fr_auto] ${
+          scrolled
+            ? "bg-background/95 shadow-[0_18px_55px_rgba(0,0,0,0.16)]"
+            : "bg-background/78 shadow-[0_12px_40px_rgba(0,0,0,0.08)]"
+        }`}
+      >
+        <a href="#home" className="focus-ring inline-flex w-fit items-center gap-2 rounded-xl pr-2 text-sm font-semibold tracking-wide">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-xs font-bold text-accent-foreground">
+            SG
+          </span>
+          <span>Smit Gadhiya</span>
         </a>
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center justify-center gap-1 lg:flex">
           {navItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="focus-ring rounded-md px-3 py-2 text-sm text-muted transition hover:text-foreground"
+              className="focus-ring rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface/[0.05] hover:text-foreground"
             >
               {item.label}
             </a>
           ))}
-          <ButtonLink href="#contact">Let&apos;s Work Together</ButtonLink>
+        </div>
+        <div className="hidden items-center gap-2 lg:flex">
+          <a
+            href="#contact"
+            className="focus-ring inline-flex min-h-10 items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-accent-foreground transition hover:-translate-y-0.5 hover:bg-accent-hover"
+          >
+            Let&apos;s Work Together
+          </a>
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </div>
         <button
-          aria-label="Open navigation menu"
+          aria-label={open ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-md border border-line bg-white/[0.04] md:hidden"
+          className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface/[0.04] transition hover:border-accent/50 hover:bg-surface/[0.07] lg:hidden"
         >
           {open ? <X size={18} /> : <Menu size={18} />}
         </button>
@@ -122,14 +197,14 @@ function Nav() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="container-shell mt-3 rounded-md border border-line bg-panel p-2 md:hidden"
+            className="container-shell pointer-events-auto mt-2 rounded-2xl border border-line bg-background/95 p-2 shadow-[0_18px_55px_rgba(0,0,0,0.18)] backdrop-blur-xl lg:hidden"
           >
             {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="focus-ring block rounded-md px-3 py-3 text-sm text-muted hover:bg-white/[0.04] hover:text-foreground"
+                className="focus-ring block rounded-xl px-3 py-3 text-sm font-medium text-muted transition hover:bg-surface/[0.05] hover:text-foreground"
               >
                 {item.label}
               </a>
@@ -137,10 +212,13 @@ function Nav() {
             <a
               href="#contact"
               onClick={() => setOpen(false)}
-              className="focus-ring mt-2 flex min-h-11 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-[#07110f]"
+              className="focus-ring mt-2 flex min-h-11 items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover"
             >
               Let&apos;s Work Together
             </a>
+            <div className="mt-2 border-t border-line pt-2">
+              <ThemeToggle theme={theme} onToggle={toggleTheme} expanded />
+            </div>
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -194,7 +272,7 @@ function ArchitectureVisual() {
             key={item}
             animate={reduceMotion ? undefined : { opacity: [0.72, 1, 0.72] }}
             transition={{ duration: 3.5, repeat: Infinity, delay: index * 0.3 }}
-            className="rounded-md border border-line bg-white/[0.035] px-3 py-2 text-center font-mono text-xs text-muted"
+            className="rounded-md border border-line bg-surface/[0.035] px-3 py-2 text-center font-mono text-xs text-muted"
           >
             {item}
           </motion.div>
@@ -233,7 +311,7 @@ function Hero() {
         </motion.div>
         <ArchitectureVisual />
       </div>
-      <div className="mt-16 overflow-hidden rounded-md border border-line bg-white/[0.03]">
+      <div className="mt-16 overflow-hidden rounded-md border border-line bg-surface/[0.03]">
         <div className="flex min-w-max items-center gap-3 px-4 py-3 md:justify-between">
           {capabilities.map((item) => (
             <span key={item} className="whitespace-nowrap rounded-sm px-2 py-1 font-mono text-xs uppercase tracking-[0.18em] text-muted">
@@ -260,7 +338,7 @@ function BuildSection() {
               <p className="mt-3 min-h-24 text-sm leading-6 text-muted">{item.description}</p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {item.tech.map((tech) => (
-                  <span key={tech} className="rounded-md border border-line bg-white/[0.035] px-2.5 py-1 text-xs text-muted">
+                  <span key={tech} className="rounded-md border border-line bg-surface/[0.035] px-2.5 py-1 text-xs text-muted">
                     {tech}
                   </span>
                 ))}
@@ -330,7 +408,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
             <h2 id="project-title" className="mt-4 text-3xl font-semibold tracking-tight">{project.name}</h2>
             <p className="mt-3 max-w-2xl text-muted">{project.description}</p>
           </div>
-          <button aria-label="Close project details" onClick={onClose} className="focus-ring rounded-md border border-line p-2 hover:bg-white/[0.06]">
+          <button aria-label="Close project details" onClick={onClose} className="focus-ring rounded-md border border-line p-2 hover:bg-surface/[0.06]">
             <X size={18} />
           </button>
         </div>
@@ -359,13 +437,13 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
             <h3 className="text-lg font-semibold">Results</h3>
             <div className="mt-3 grid gap-2">
               {project.outcomes.map((item) => (
-                <div key={item} className="rounded-md border border-line bg-white/[0.035] px-3 py-2 text-sm text-muted">{item}</div>
+                <div key={item} className="rounded-md border border-line bg-surface/[0.035] px-3 py-2 text-sm text-muted">{item}</div>
               ))}
             </div>
             <h3 className="mt-6 text-lg font-semibold">Technology stack</h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {project.tech.map((tech) => (
-                <span key={tech} className="rounded-md border border-line bg-white/[0.04] px-2.5 py-1 text-xs text-muted">{tech}</span>
+                <span key={tech} className="rounded-md border border-line bg-surface/[0.04] px-2.5 py-1 text-xs text-muted">{tech}</span>
               ))}
             </div>
           </div>
@@ -377,7 +455,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
 
 function InfoBlock({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-lg border border-line bg-white/[0.03] p-4">
+    <div className="rounded-lg border border-line bg-surface/[0.03] p-4">
       <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted">{title}</h3>
       <p className="mt-3 text-sm leading-6 text-muted">{text}</p>
     </div>
@@ -412,7 +490,7 @@ function WorkSection() {
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">{project.description}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {project.tech.map((tech) => (
-                    <span key={tech} className="rounded-md border border-line bg-white/[0.035] px-2.5 py-1 text-xs text-muted">
+                    <span key={tech} className="rounded-md border border-line bg-surface/[0.035] px-2.5 py-1 text-xs text-muted">
                       {tech}
                     </span>
                   ))}
@@ -441,7 +519,7 @@ function EngineeringSection() {
         {principles.map((item, index) => {
           const Icon = item.icon;
           return (
-            <motion.article key={item.title} className="rounded-lg border border-line bg-white/[0.035] p-4" {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.04 }}>
+            <motion.article key={item.title} className="rounded-lg border border-line bg-surface/[0.035] p-4" {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.04 }}>
               <Icon className="text-amber" size={20} />
               <h3 className="mt-4 text-base font-semibold">{item.title}</h3>
               <p className="mt-3 text-sm leading-6 text-muted">{item.text}</p>
@@ -463,7 +541,7 @@ function StackSection() {
             <h3 className="text-lg font-semibold">{group}</h3>
             <div className="mt-4 flex flex-wrap gap-2">
               {items.map((item) => (
-                <span key={item} className="rounded-md border border-line bg-white/[0.035] px-3 py-1.5 text-sm text-muted transition hover:-translate-y-0.5 hover:border-accent/50 hover:text-foreground">
+                <span key={item} className="rounded-md border border-line bg-surface/[0.035] px-3 py-1.5 text-sm text-muted transition hover:-translate-y-0.5 hover:border-accent/50 hover:text-foreground">
                   {item}
                 </span>
               ))}
@@ -482,7 +560,7 @@ function ExperienceSection() {
       <div className="relative grid gap-5">
         <div className="absolute bottom-0 left-4 top-0 hidden w-px bg-line md:block" />
         {experience.map((item, index) => (
-          <motion.article key={item.company} className="relative grid gap-4 rounded-lg border border-line bg-white/[0.03] p-5 md:ml-10 md:grid-cols-[0.8fr_1.2fr]" {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.06 }}>
+          <motion.article key={item.company} className="relative grid gap-4 rounded-lg border border-line bg-surface/[0.03] p-5 md:ml-10 md:grid-cols-[0.8fr_1.2fr]" {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.06 }}>
             <span className="absolute -left-[47px] top-6 hidden h-3 w-3 rounded-full bg-accent md:block" />
             <div>
               <h3 className="text-xl font-semibold">{item.role}</h3>
@@ -543,7 +621,7 @@ function ContactSection() {
 
   return (
     <section id="contact" className="container-shell scroll-mt-28 py-20">
-      <motion.div className="mb-16 rounded-lg border border-accent/25 bg-[linear-gradient(135deg,rgba(82,210,188,0.14),rgba(255,255,255,0.035))] p-6 md:p-8" {...fadeUp}>
+      <motion.div className="contact-banner mb-16 rounded-lg border border-accent/25 p-6 md:p-8" {...fadeUp}>
         <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
           <div>
             <h2 className="text-3xl font-semibold tracking-tight">Have a product idea or a problem that needs software?</h2>
@@ -579,7 +657,7 @@ function ContactSection() {
               placeholder="Give me context, goals, current stack, or timeline."
             />
           </label>
-          <button className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-5 text-sm font-semibold text-[#07110f] transition hover:-translate-y-0.5 hover:bg-[#6ee3d1]">
+          <button className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-5 text-sm font-semibold text-accent-foreground transition hover:-translate-y-0.5 hover:bg-accent-hover">
             Send Message <Send size={16} />
           </button>
           {status ? <p className="text-sm text-muted" role="status">{status}</p> : null}

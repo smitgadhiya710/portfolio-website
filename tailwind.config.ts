@@ -5,15 +5,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#07090d",
-        foreground: "#f4f7fb",
-        muted: "#99a3b2",
-        panel: "#0d1118",
-        panel2: "#111722",
-        line: "rgba(255,255,255,0.1)",
-        accent: "#52d2bc",
-        amber: "#f1b85b",
-        steel: "#8aa4c8"
+        background: "rgb(var(--color-background) / <alpha-value>)",
+        foreground: "rgb(var(--color-foreground) / <alpha-value>)",
+        muted: "rgb(var(--color-muted) / <alpha-value>)",
+        panel: "rgb(var(--color-panel) / <alpha-value>)",
+        panel2: "rgb(var(--color-panel-2) / <alpha-value>)",
+        line: "rgb(var(--color-line) / var(--color-line-opacity))",
+        accent: "rgb(var(--color-accent) / <alpha-value>)",
+        "accent-hover": "rgb(var(--color-accent-hover) / <alpha-value>)",
+        "accent-foreground": "rgb(var(--color-accent-foreground) / <alpha-value>)",
+        amber: "rgb(var(--color-amber) / <alpha-value>)",
+        steel: "rgb(var(--color-steel) / <alpha-value>)",
+        surface: "rgb(var(--color-surface) / <alpha-value>)"
       },
       fontFamily: {
         sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
