@@ -6,12 +6,13 @@ import {
   Grid,
   Lightformer,
   Line,
+  PerformanceMonitor,
   RoundedBox,
   Sparkles,
 } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
-import { type ReactNode, useEffect, useMemo, useRef } from "react";
+import { Bloom, EffectComposer } from "@react-three/postprocessing";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import { useExperience } from "@/components/immersive/experience-provider";
@@ -43,6 +44,36 @@ const projectAtmospheres = ["#0A0816", "#061412", "#101307", "#15080D"] as const
 type SceneGroup = THREE.Group;
 type Vector3Tuple = [number, number, number];
 
+type SceneFrame = {
+  cameraZ: number;
+  fov: number;
+  lookX: number;
+  lookY: number;
+  stageScale: number;
+  stageX: number;
+  stageY: number;
+};
+
+const desktopFrames: SceneFrame[] = [
+  { cameraZ: 8.1, fov: 42, lookX: 0.42, lookY: 0, stageScale: 1, stageX: 1.78, stageY: 0 },
+  { cameraZ: 8.25, fov: 43, lookX: 0.48, lookY: 0, stageScale: 0.96, stageX: 1.68, stageY: 0 },
+  { cameraZ: 8.7, fov: 45, lookX: 0.34, lookY: -0.04, stageScale: 0.92, stageX: 1.34, stageY: 0 },
+  { cameraZ: 8.75, fov: 45, lookX: 0.25, lookY: 0, stageScale: 0.9, stageX: 1.25, stageY: 0 },
+  { cameraZ: 8.9, fov: 45, lookX: 0.25, lookY: 0, stageScale: 0.88, stageX: 1.2, stageY: 0 },
+  { cameraZ: 9, fov: 46, lookX: 0.2, lookY: -0.2, stageScale: 0.92, stageX: 1.05, stageY: -0.05 },
+  { cameraZ: 8.2, fov: 43, lookX: 0.45, lookY: 0, stageScale: 0.98, stageX: 1.7, stageY: 0 },
+  { cameraZ: 8.2, fov: 42, lookX: 0.45, lookY: 0, stageScale: 1, stageX: 1.7, stageY: 0 },
+];
+
+const projectFrames: SceneFrame[] = [
+  { cameraZ: 8.55, fov: 44, lookX: 0.36, lookY: 0, stageScale: 0.94, stageX: 1.38, stageY: 0 },
+  { cameraZ: 8.55, fov: 44, lookX: 0.38, lookY: 0, stageScale: 0.95, stageX: 1.4, stageY: 0 },
+  { cameraZ: 9.05, fov: 46, lookX: 0.22, lookY: 0, stageScale: 0.86, stageX: 1.02, stageY: 0 },
+  { cameraZ: 8.9, fov: 45, lookX: 0.3, lookY: -0.12, stageScale: 0.9, stageX: 1.28, stageY: -0.06 },
+];
+
+const initializedWorlds = new WeakSet<THREE.Group>();
+
 const gameObstacles = [
   { at: 0.12, lane: 0 },
   { at: 0.23, lane: 2 },
@@ -54,12 +85,43 @@ const gameObstacles = [
   { at: 0.91, lane: 2 },
 ] as const;
 
-function reveal(group: THREE.Group | null, visible: boolean, speed = 0.07, scale = 1) {
+function damp(delta: number, speed: number) {
+  return 1 - Math.exp(-speed * Math.min(delta, 0.1));
+}
+
+function getSceneFrame(activeChapter: number, activeProject: number, mobile: boolean) {
+  if (!mobile) {
+    return activeChapter === 2
+      ? projectFrames[activeProject] ?? desktopFrames[2]
+      : desktopFrames[activeChapter] ?? desktopFrames[0];
+  }
+
+  const wideScene = [2, 3, 4, 5].includes(activeChapter);
+  return {
+    cameraZ: wideScene ? 9.45 : 9.1,
+    fov: wideScene ? 48 : 46,
+    lookX: 0.06,
+    lookY: activeChapter === 0 ? -0.2 : -0.08,
+    stageScale: wideScene ? 0.62 : 0.7,
+    stageX: 0.08,
+    stageY: activeChapter === 0 ? -0.55 : -0.12,
+  };
+}
+
+function reveal(group: THREE.Group | null, visible: boolean, delta: number, scale = 1, instant = false) {
   if (!group) return;
   const target = visible ? scale : 0.001;
-  const next = THREE.MathUtils.lerp(group.scale.x, target, speed);
+
+  if (!initializedWorlds.has(group) || instant) {
+    initializedWorlds.add(group);
+    group.scale.setScalar(target);
+    group.visible = visible;
+    return;
+  }
+
+  const next = THREE.MathUtils.lerp(group.scale.x, target, damp(delta, 10));
   group.scale.setScalar(next);
-  group.visible = next > 0.008;
+  group.visible = visible || next > 0.025;
 }
 
 function GlowNode({ color, position, scale = 1 }: { color: string; position: Vector3Tuple; scale?: number }) {
@@ -79,8 +141,9 @@ function GlowNode({ color, position, scale = 1 }: { color: string; position: Vec
 
 function CameraRig() {
   const { camera, size } = useThree();
-  const { activeChapter, motionEnabled } = useExperience();
+  const { activeChapter, activeProject, motionEnabled } = useExperience();
   const pointer = useRef(new THREE.Vector2());
+  const lookTarget = useRef(new THREE.Vector3(0.42, 0, 0));
 
   useEffect(() => {
     const onPointerMove = (event: PointerEvent) => {
@@ -98,15 +161,25 @@ function CameraRig() {
     };
   }, []);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const mobile = size.width < 760;
-    const targetZ = mobile ? 8.8 : activeChapter === 5 ? 8.6 : 8.05;
+    const frame = getSceneFrame(activeChapter, activeProject, mobile);
     const targetX = motionEnabled && !mobile ? pointer.current.x * 0.26 : 0;
     const targetY = motionEnabled ? pointer.current.y * 0.15 : 0;
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.035);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.035);
-    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.035);
-    camera.lookAt(mobile ? 0.15 : 0.4, activeChapter === 5 ? -0.2 : 0, 0);
+    const blend = motionEnabled ? damp(delta, 5) : 1;
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, blend);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, blend);
+    camera.position.z = THREE.MathUtils.lerp(camera.position.z, frame.cameraZ, blend);
+    lookTarget.current.x = THREE.MathUtils.lerp(lookTarget.current.x, frame.lookX, blend);
+    lookTarget.current.y = THREE.MathUtils.lerp(lookTarget.current.y, frame.lookY, blend);
+    if (camera instanceof THREE.PerspectiveCamera) {
+      const nextFov = THREE.MathUtils.lerp(camera.fov, frame.fov, blend);
+      if (Math.abs(nextFov - camera.fov) > 0.001) {
+        camera.fov = nextFov;
+        camera.updateProjectionMatrix();
+      }
+    }
+    camera.lookAt(lookTarget.current);
   });
 
   return null;
@@ -114,22 +187,54 @@ function CameraRig() {
 
 function AtmosphereController() {
   const { gl, scene } = useThree();
-  const { activeChapter, activeProject } = useExperience();
+  const { activeChapter, activeProject, motionEnabled } = useExperience();
   const palette = activeChapter === 2
     ? projectAtmospheres[activeProject] ?? colors.void
     : chapterAtmospheres[activeChapter] ?? colors.void;
   const target = useMemo(() => new THREE.Color(palette), [palette]);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
+    const blend = motionEnabled ? damp(delta, 2.8) : 1;
     if (scene.background instanceof THREE.Color) {
-      scene.background.lerp(target, 0.025);
+      scene.background.lerp(target, blend);
     }
     if (scene.fog instanceof THREE.Fog) {
-      scene.fog.color.lerp(target, 0.025);
+      scene.fog.color.lerp(target, blend);
     }
     const targetExposure = activeChapter === 2 || activeChapter === 5 ? 1.14 : 1.06;
-    gl.toneMappingExposure = THREE.MathUtils.lerp(gl.toneMappingExposure, targetExposure, 0.025);
+    gl.toneMappingExposure = THREE.MathUtils.lerp(gl.toneMappingExposure, targetExposure, blend);
   });
+
+  return null;
+}
+
+function WebGLRecovery() {
+  const { gl, invalidate } = useThree();
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    let recoveryTimer = 0;
+
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      window.clearTimeout(recoveryTimer);
+      recoveryTimer = window.setTimeout(() => gl.forceContextRestore(), 300);
+    };
+    const handleContextRestored = () => invalidate();
+    const handleVisibility = () => {
+      if (!document.hidden) invalidate();
+    };
+
+    canvas.addEventListener("webglcontextlost", handleContextLost);
+    canvas.addEventListener("webglcontextrestored", handleContextRestored);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.clearTimeout(recoveryTimer);
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
+      canvas.removeEventListener("webglcontextrestored", handleContextRestored);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [gl, invalidate]);
 
   return null;
 }
@@ -137,17 +242,16 @@ function AtmosphereController() {
 function SceneStage({ children }: { children: ReactNode }) {
   const stage = useRef<SceneGroup>(null);
   const { size } = useThree();
-  const { activeChapter } = useExperience();
+  const { activeChapter, activeProject, motionEnabled } = useExperience();
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!stage.current) return;
     const mobile = size.width < 760;
-    const targetX = mobile ? 0.28 : activeChapter === 5 ? 1.55 : 1.78;
-    const targetY = mobile ? (activeChapter === 0 ? -0.45 : -0.1) : 0;
-    const targetScale = mobile ? 0.76 : 1;
-    stage.current.position.x = THREE.MathUtils.lerp(stage.current.position.x, targetX, 0.045);
-    stage.current.position.y = THREE.MathUtils.lerp(stage.current.position.y, targetY, 0.045);
-    const nextScale = THREE.MathUtils.lerp(stage.current.scale.x, targetScale, 0.045);
+    const frame = getSceneFrame(activeChapter, activeProject, mobile);
+    const blend = motionEnabled ? damp(delta, 5.5) : 1;
+    stage.current.position.x = THREE.MathUtils.lerp(stage.current.position.x, frame.stageX, blend);
+    stage.current.position.y = THREE.MathUtils.lerp(stage.current.position.y, frame.stageY, blend);
+    const nextScale = THREE.MathUtils.lerp(stage.current.scale.x, frame.stageScale, blend);
     stage.current.scale.setScalar(nextScale);
   });
 
@@ -189,24 +293,25 @@ function DeveloperReactor() {
     const targetX = dominant ? 0 : 2.35;
     const targetY = activeChapter === 7 ? -0.25 : dominant ? 0 : -1.48;
     const targetZ = dominant ? 0 : -1.9;
-    const scale = THREE.MathUtils.lerp(group.current.scale.x, targetScale, 0.05);
+    const blend = motionEnabled ? damp(delta, 5.5) : 1;
+    const scale = THREE.MathUtils.lerp(group.current.scale.x, targetScale, blend);
     group.current.scale.setScalar(scale);
-    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, targetX, 0.045);
-    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, targetY, 0.045);
-    group.current.position.z = THREE.MathUtils.lerp(group.current.position.z, targetZ, 0.045);
+    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, targetX, blend);
+    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, targetY, blend);
+    group.current.position.z = THREE.MathUtils.lerp(group.current.position.z, targetZ, blend);
 
     if (motionEnabled) {
-      group.current.rotation.y += delta * (0.1 + progress.current * 0.06);
+      group.current.rotation.y += Math.min(delta, 0.05) * (0.1 + progress.current * 0.06);
       group.current.rotation.x = Math.sin(time * 0.31) * 0.07;
-      if (shell.current) shell.current.rotation.z -= delta * 0.055;
-      if (inner.current) inner.current.rotation.y -= delta * 0.22;
+      if (shell.current) shell.current.rotation.z -= Math.min(delta, 0.05) * 0.055;
+      if (inner.current) inner.current.rotation.y -= Math.min(delta, 0.05) * 0.22;
     }
 
     orbitRefs.current.forEach((orbit, index) => {
       if (!orbit) return;
       const exploded = activeChapter === 1 ? (index - 1.5) * 0.34 : 0;
-      orbit.position.y = THREE.MathUtils.lerp(orbit.position.y, exploded, 0.06);
-      if (motionEnabled) orbit.rotation.z += delta * (0.1 + index * 0.035) * (index % 2 ? -1 : 1);
+      orbit.position.y = THREE.MathUtils.lerp(orbit.position.y, exploded, blend);
+      if (motionEnabled) orbit.rotation.z += Math.min(delta, 0.05) * (0.1 + index * 0.035) * (index % 2 ? -1 : 1);
     });
   });
 
@@ -267,7 +372,7 @@ function DeveloperReactor() {
           rotation={[Math.PI / 2 + index * 0.22, 0.2 + index * 0.3, index * 0.2]}
         >
           <mesh>
-            <torusGeometry args={[1.62 + index * 0.19, 0.018 + index * 0.004, 12, 128]} />
+            <torusGeometry args={[1.62 + index * 0.19, 0.018 + index * 0.004, 10, 88]} />
             <meshStandardMaterial color={color} emissive={color} emissiveIntensity={2.6} metalness={0.4} roughness={0.2} />
           </mesh>
           <GlowNode color={color} position={[1.62 + index * 0.19, 0, 0]} scale={0.78 + index * 0.06} />
@@ -301,18 +406,19 @@ function ByteCompanion() {
     ];
     const target = chapterPositions[activeChapter] ?? chapterPositions[0];
     const shake = gameResult === "collision" ? Math.sin(time * 54) * 0.1 : 0;
-    byte.current.position.x = THREE.MathUtils.lerp(byte.current.position.x, target[0] + shake, 0.08);
+    const blend = motionEnabled ? damp(delta, 8) : 1;
+    byte.current.position.x = THREE.MathUtils.lerp(byte.current.position.x, target[0] + shake, blend);
     byte.current.position.y = THREE.MathUtils.lerp(
       byte.current.position.y,
       target[1] + (motionEnabled && activeChapter !== 5 ? Math.sin(time * 1.9) * 0.1 : 0),
-      0.08,
+      blend,
     );
-    byte.current.position.z = THREE.MathUtils.lerp(byte.current.position.z, target[2], 0.08);
+    byte.current.position.z = THREE.MathUtils.lerp(byte.current.position.z, target[2], blend);
     const targetScale = activeChapter === 5 ? 0.72 : 0.52;
-    const scale = THREE.MathUtils.lerp(byte.current.scale.x, targetScale, 0.08);
+    const scale = THREE.MathUtils.lerp(byte.current.scale.x, targetScale, blend);
     byte.current.scale.setScalar(scale);
-    if (motionEnabled) byte.current.rotation.y += delta * (activeChapter === 5 ? 0.12 : 0.55);
-    if (halo.current && motionEnabled) halo.current.rotation.z += delta * 0.8;
+    if (motionEnabled) byte.current.rotation.y += Math.min(delta, 0.05) * (activeChapter === 5 ? 0.12 : 0.55);
+    if (halo.current && motionEnabled) halo.current.rotation.z += Math.min(delta, 0.05) * 0.8;
   });
 
   return (
@@ -325,7 +431,7 @@ function ByteCompanion() {
         <meshStandardMaterial color={colors.data} emissive={colors.data} emissiveIntensity={3.6} metalness={0.28} roughness={0.12} />
       </mesh>
       <mesh ref={halo} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.75, 0.032, 10, 64]} />
+        <torusGeometry args={[0.75, 0.032, 10, 48]} />
         <meshStandardMaterial color={colors.lime} emissive={colors.lime} emissiveIntensity={3} />
       </mesh>
       {[-1, 1].map((side) => (
@@ -351,6 +457,7 @@ function ByteCompanion() {
 function OrbitalOrganization({ visible }: { visible: boolean }) {
   const group = useRef<SceneGroup>(null);
   const rings = useRef<Array<THREE.Group | null>>([]);
+  const { motionEnabled } = useExperience();
   const nodes = useMemo(
     () => Array.from({ length: 18 }, (_, index) => {
       const ring = index % 3;
@@ -366,18 +473,18 @@ function OrbitalOrganization({ visible }: { visible: boolean }) {
   );
 
   useFrame((state, delta) => {
-    reveal(group.current, visible, 0.07, 1.12);
+    reveal(group.current, visible, delta, 1.12, !motionEnabled);
     if (!visible || !group.current) return;
     group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.22) * 0.16;
     rings.current.forEach((ring, index) => {
-      if (ring) ring.rotation.z += delta * (0.08 + index * 0.04) * (index === 1 ? -1 : 1);
+      if (ring) ring.rotation.z += Math.min(delta, 0.05) * (0.08 + index * 0.04) * (index === 1 ? -1 : 1);
     });
   });
 
   return (
     <group ref={group} rotation={[0.1, -0.22, -0.08]}>
       <mesh>
-        <sphereGeometry args={[0.78, 36, 36]} />
+        <sphereGeometry args={[0.78, 28, 28]} />
         <meshPhysicalMaterial color="#151722" emissive={colors.iris} emissiveIntensity={0.42} metalness={0.88} roughness={0.16} clearcoat={1} />
       </mesh>
       <mesh scale={1.04}>
@@ -396,7 +503,7 @@ function OrbitalOrganization({ visible }: { visible: boolean }) {
           rotation={[Math.PI / 2 + index * 0.32, index * 0.38, 0]}
         >
           <mesh>
-            <torusGeometry args={[radius, 0.025, 12, 128]} />
+            <torusGeometry args={[radius, 0.025, 10, 88]} />
             <meshStandardMaterial color={[colors.mineral, colors.data, colors.iris][index]} emissive={[colors.mineral, colors.data, colors.iris][index]} emissiveIntensity={1.7} />
           </mesh>
         </group>
@@ -420,6 +527,7 @@ function PulseNetwork({ visible }: { visible: boolean }) {
   const group = useRef<SceneGroup>(null);
   const core = useRef<THREE.Mesh>(null);
   const packetRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const { motionEnabled } = useExperience();
   const nodes = useMemo<Vector3Tuple[]>(
     () => [
       [-2.1, 1.1, -0.2], [-1.25, 1.75, 0.28], [-0.2, 1.25, -0.35], [1.05, 1.75, 0.12],
@@ -438,8 +546,8 @@ function PulseNetwork({ visible }: { visible: boolean }) {
     [],
   );
 
-  useFrame((state) => {
-    reveal(group.current, visible, 0.07, 1.1);
+  useFrame((state, delta) => {
+    reveal(group.current, visible, delta, 1.1, !motionEnabled);
     if (!visible || !group.current) return;
     const time = state.clock.elapsedTime;
     group.current.rotation.y = Math.sin(time * 0.18) * 0.15;
@@ -460,11 +568,11 @@ function PulseNetwork({ visible }: { visible: boolean }) {
   return (
     <group ref={group}>
       <mesh ref={core}>
-        <torusKnotGeometry args={[0.62, 0.22, 110, 16, 2, 3]} />
+        <torusKnotGeometry args={[0.62, 0.22, 78, 14, 2, 3]} />
         <meshPhysicalMaterial color={colors.teal} emissive={colors.teal} emissiveIntensity={1.25} metalness={0.6} roughness={0.16} clearcoat={1} />
       </mesh>
       <mesh scale={1.3} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.72, 0.025, 10, 80]} />
+        <torusGeometry args={[0.72, 0.025, 10, 56]} />
         <meshBasicMaterial color={colors.data} transparent opacity={0.65} />
       </mesh>
       <Line points={nodes} color={colors.teal} lineWidth={1.5} transparent opacity={0.52} />
@@ -473,7 +581,7 @@ function PulseNetwork({ visible }: { visible: boolean }) {
         <group key={index} position={position}>
           <GlowNode color={index % 3 === 0 ? colors.lime : colors.teal} position={[0, 0, 0]} scale={index % 3 === 0 ? 1.18 : 0.86} />
           <mesh rotation={[Math.PI / 2, 0, 0]} scale={1 + (index % 2) * 0.35}>
-            <torusGeometry args={[0.21, 0.012, 8, 40]} />
+            <torusGeometry args={[0.21, 0.012, 8, 28]} />
             <meshBasicMaterial color={colors.data} transparent opacity={0.5} />
           </mesh>
         </group>
@@ -493,23 +601,24 @@ function QuestionFoundry({ visible }: { visible: boolean }) {
   const group = useRef<SceneGroup>(null);
   const crystal = useRef<THREE.Mesh>(null);
   const scanRing = useRef<THREE.Mesh>(null);
+  const { motionEnabled } = useExperience();
   const cells = useMemo(
-    () => Array.from({ length: 48 }, (_, index) => ({
+    () => Array.from({ length: 36 }, (_, index) => ({
       active: index % 7 === 0 || index % 11 === 0,
-      position: [((index % 8) - 3.5) * 0.46, (Math.floor(index / 8) - 2.5) * 0.46, Math.sin(index * 1.6) * 0.12] as Vector3Tuple,
+      position: [((index % 6) - 2.5) * 0.56, (Math.floor(index / 6) - 2.5) * 0.46, Math.sin(index * 1.6) * 0.12] as Vector3Tuple,
       scale: 0.12 + (index % 4) * 0.01,
     })),
     [],
   );
 
   useFrame((state, delta) => {
-    reveal(group.current, visible, 0.07, 1.12);
+    reveal(group.current, visible, delta, 1.12, !motionEnabled);
     if (!visible || !group.current) return;
     const time = state.clock.elapsedTime;
     group.current.rotation.y = -0.18 + Math.sin(time * 0.2) * 0.14;
     if (crystal.current) {
-      crystal.current.rotation.x += delta * 0.28;
-      crystal.current.rotation.y -= delta * 0.36;
+      crystal.current.rotation.x += Math.min(delta, 0.05) * 0.28;
+      crystal.current.rotation.y -= Math.min(delta, 0.05) * 0.36;
       crystal.current.position.y = 0.15 + Math.sin(time * 1.4) * 0.12;
     }
     if (scanRing.current) scanRing.current.position.y = Math.sin(time * 0.8) * 1.35;
@@ -536,7 +645,7 @@ function QuestionFoundry({ visible }: { visible: boolean }) {
         <meshPhysicalMaterial color={colors.iris} emissive={colors.iris} emissiveIntensity={1.4} metalness={0.6} roughness={0.12} clearcoat={1} />
       </mesh>
       <mesh ref={scanRing} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.48]}>
-        <torusGeometry args={[2.35, 0.025, 10, 100]} />
+        <torusGeometry args={[2.35, 0.025, 10, 72]} />
         <meshStandardMaterial color={colors.lime} emissive={colors.lime} emissiveIntensity={3} />
       </mesh>
       <mesh position={[0, 0, 0.1]}>
@@ -556,17 +665,18 @@ function QuestionFoundry({ visible }: { visible: boolean }) {
 function LivingGrid({ visible }: { visible: boolean }) {
   const group = useRef<SceneGroup>(null);
   const scanner = useRef<THREE.Mesh>(null);
+  const { motionEnabled } = useExperience();
   const buildings = useMemo(
-    () => Array.from({ length: 40 }, (_, index) => ({
+    () => Array.from({ length: 32 }, (_, index) => ({
       accent: index % 7 === 0 || index % 11 === 0,
       height: 0.35 + ((index * 7) % 12) * 0.11,
-      position: [((index % 8) - 3.5) * 0.48, 0, (Math.floor(index / 8) - 2) * 0.52] as Vector3Tuple,
+      position: [((index % 8) - 3.5) * 0.48, 0, (Math.floor(index / 8) - 1.5) * 0.68] as Vector3Tuple,
     })),
     [],
   );
 
-  useFrame((state) => {
-    reveal(group.current, visible, 0.07, 1.08);
+  useFrame((state, delta) => {
+    reveal(group.current, visible, delta, 1.08, !motionEnabled);
     if (!visible || !group.current) return;
     const time = state.clock.elapsedTime;
     group.current.rotation.y = -0.52 + Math.sin(time * 0.16) * 0.08;
@@ -608,6 +718,7 @@ function LivingGrid({ visible }: { visible: boolean }) {
 function CapabilityConstellation({ visible }: { visible: boolean }) {
   const group = useRef<SceneGroup>(null);
   const hub = useRef<THREE.Mesh>(null);
+  const { motionEnabled } = useExperience();
   const nodes = useMemo<Vector3Tuple[]>(
     () => [
       [-2.35, 1.25, 0], [-1.1, 1.82, -0.35], [0.28, 1.72, 0.35], [1.65, 1.25, -0.2],
@@ -618,12 +729,12 @@ function CapabilityConstellation({ visible }: { visible: boolean }) {
   );
 
   useFrame((state, delta) => {
-    reveal(group.current, visible, 0.07, 1.1);
+    reveal(group.current, visible, delta, 1.1, !motionEnabled);
     if (!visible || !group.current) return;
     group.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.18) * 0.08;
     if (hub.current) {
-      hub.current.rotation.x += delta * 0.18;
-      hub.current.rotation.y -= delta * 0.22;
+      hub.current.rotation.x += Math.min(delta, 0.05) * 0.18;
+      hub.current.rotation.y -= Math.min(delta, 0.05) * 0.22;
     }
   });
 
@@ -649,7 +760,7 @@ function CapabilityConstellation({ visible }: { visible: boolean }) {
         </group>
       ))}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[2.58, 0.018, 8, 110]} />
+        <torusGeometry args={[2.58, 0.018, 8, 78]} />
         <meshBasicMaterial color={colors.data} transparent opacity={0.25} />
       </mesh>
       <pointLight color={colors.data} intensity={9} distance={7} />
@@ -661,11 +772,12 @@ function AIPipeline({ visible }: { visible: boolean }) {
   const group = useRef<SceneGroup>(null);
   const packet = useRef<THREE.Mesh>(null);
   const stageRefs = useRef<Array<THREE.Group | null>>([]);
+  const { motionEnabled } = useExperience();
   const positions = [-2.25, -0.75, 0.75, 2.25];
   const stageColors = [colors.data, colors.teal, colors.iris, colors.lime];
 
   useFrame((state, delta) => {
-    reveal(group.current, visible, 0.07, 1.05);
+    reveal(group.current, visible, delta, 1.05, !motionEnabled);
     if (!visible || !group.current) return;
     const time = state.clock.elapsedTime;
     if (packet.current) {
@@ -674,7 +786,7 @@ function AIPipeline({ visible }: { visible: boolean }) {
     }
     stageRefs.current.forEach((stage, index) => {
       if (!stage) return;
-      stage.rotation.y += delta * (0.08 + index * 0.035) * (index % 2 ? -1 : 1);
+      stage.rotation.y += Math.min(delta, 0.05) * (0.08 + index * 0.035) * (index % 2 ? -1 : 1);
     });
   });
 
@@ -697,11 +809,11 @@ function AIPipeline({ visible }: { visible: boolean }) {
               <mesh><icosahedronGeometry args={[0.56, 2]} /><meshPhysicalMaterial color={stageColors[index]} emissive={stageColors[index]} emissiveIntensity={1.2} metalness={0.65} roughness={0.18} /></mesh>
             ) : null}
             {index === 3 ? (
-              <mesh><torusKnotGeometry args={[0.4, 0.13, 90, 12]} /><meshPhysicalMaterial color={stageColors[index]} emissive={stageColors[index]} emissiveIntensity={1.35} metalness={0.65} roughness={0.16} /></mesh>
+              <mesh><torusKnotGeometry args={[0.4, 0.13, 64, 10]} /><meshPhysicalMaterial color={stageColors[index]} emissive={stageColors[index]} emissiveIntensity={1.35} metalness={0.65} roughness={0.16} /></mesh>
             ) : null}
           </group>
           <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.72, 0.022, 10, 64]} />
+            <torusGeometry args={[0.72, 0.022, 10, 48]} />
             <meshBasicMaterial color={stageColors[index]} transparent opacity={0.56} />
           </mesh>
           <RoundedBox args={[1.05, 0.25, 0.65]} radius={0.08} smoothness={4} position={[0, -0.82, 0]}>
@@ -722,12 +834,13 @@ function PacketRunWorld({ visible }: { visible: boolean }) {
   const group = useRef<SceneGroup>(null);
   const tileRefs = useRef<Array<THREE.Mesh | null>>([]);
   const obstacleRefs = useRef<Array<THREE.Group | null>>([]);
-  const { gameActive, gameIntegrity, gameProgress, gameResult, motionEnabled } = useExperience();
+  const { gameActive, gameIntegrity, gameProgressRef, gameResult, motionEnabled } = useExperience();
 
-  useFrame((state) => {
-    reveal(group.current, visible, 0.07, 1);
+  useFrame((state, delta) => {
+    reveal(group.current, visible, delta, 1, !motionEnabled);
     if (!visible || !group.current) return;
     const time = state.clock.elapsedTime;
+    const gameProgress = gameProgressRef.current;
     const travel = gameActive ? gameProgress * 56 : time * 0.5;
     tileRefs.current.forEach((tile, index) => {
       if (!tile) return;
@@ -776,7 +889,7 @@ function PacketRunWorld({ visible }: { visible: boolean }) {
       ))}
       {[-1.5, -4.5, -7.5, -10.5].map((z, index) => (
         <mesh key={z} position={[0, 0, z]}>
-          <torusGeometry args={[2.62, 0.024, 10, 80]} />
+          <torusGeometry args={[2.62, 0.024, 10, 56]} />
           <meshStandardMaterial color={index % 2 ? colors.iris : colors.data} emissive={index % 2 ? colors.iris : colors.data} emissiveIntensity={1.8} transparent opacity={0.45} />
         </mesh>
       ))}
@@ -796,7 +909,7 @@ function PacketRunWorld({ visible }: { visible: boolean }) {
           </mesh>
           {[0, 1, 2].map((spike) => (
             <mesh key={spike} rotation={[spike * 1.1, spike * 0.7, 0]}>
-              <torusGeometry args={[0.52, 0.018, 8, 36]} />
+              <torusGeometry args={[0.52, 0.018, 8, 24]} />
               <meshBasicMaterial color={colors.coral} transparent opacity={0.55} />
             </mesh>
           ))}
@@ -814,19 +927,20 @@ function PacketRunWorld({ visible }: { visible: boolean }) {
 
 function ExperienceScene() {
   const { activeChapter, activeProject, quality } = useExperience();
-  const effectsEnabled = quality === "high" || quality === "balanced";
+  const effectsEnabled = quality === "high";
 
   return (
     <>
       <color attach="background" args={[colors.void]} />
       <fog attach="fog" args={[colors.void, 7.5, 17]} />
       <AtmosphereController />
+      <WebGLRecovery />
       <hemisphereLight args={["#9CB4FF", "#090B10", 0.55]} />
       <directionalLight position={[-4, 6, 5]} intensity={2.4} color={colors.mineral} />
       <spotLight position={[4, 5, 5]} intensity={7} angle={0.42} penumbra={0.8} color={colors.iris} distance={14} />
       <pointLight position={[3, -1, 3]} intensity={6} distance={10} color={colors.data} />
 
-      <Environment resolution={quality === "high" ? 192 : 96}>
+      <Environment resolution={quality === "high" ? 128 : 64}>
         <Lightformer form="rect" intensity={3.5} color="#DDE7FF" position={[0, 5, -3]} rotation={[Math.PI / 2, 0, 0]} scale={[8, 2, 1]} />
         <Lightformer form="ring" intensity={4} color={colors.iris} position={[5, 1, 2]} rotation={[0, -Math.PI / 2, 0]} scale={3} />
         <Lightformer form="rect" intensity={2.8} color={colors.teal} position={[-4, -1, 3]} rotation={[0, Math.PI / 2, 0]} scale={[4, 1, 1]} />
@@ -845,7 +959,7 @@ function ExperienceScene() {
         sectionSize={2.4}
         sectionThickness={0.65}
       />
-      <Sparkles count={quality === "high" ? 115 : 58} scale={[11, 7, 8]} size={1.1} speed={0.16} color={colors.data} opacity={0.3} />
+      <Sparkles count={quality === "high" ? 84 : quality === "balanced" ? 40 : 24} scale={[11, 7, 8]} size={1.1} speed={0.16} color={colors.data} opacity={0.3} />
 
       <SceneStage>
         <DeveloperReactor />
@@ -860,14 +974,22 @@ function ExperienceScene() {
       </SceneStage>
 
       {quality !== "static" ? (
-        <ContactShadows position={[1.6, -2.28, 0]} opacity={0.42} scale={8} blur={2.8} far={6} color="#000000" />
+        <ContactShadows
+          position={[1.45, -2.28, 0]}
+          opacity={0.36}
+          scale={8}
+          blur={2.8}
+          far={6}
+          frames={1}
+          resolution={256}
+          color="#000000"
+        />
       ) : null}
       <CameraRig />
 
       {effectsEnabled ? (
-        <EffectComposer multisampling={quality === "high" ? 2 : 0}>
-          <Bloom intensity={0.7} luminanceThreshold={0.72} luminanceSmoothing={0.36} mipmapBlur />
-          <Vignette eskil={false} offset={0.08} darkness={0.62} />
+        <EffectComposer multisampling={0}>
+          <Bloom intensity={0.55} luminanceThreshold={0.76} luminanceSmoothing={0.32} mipmapBlur />
         </EffectComposer>
       ) : null}
     </>
@@ -876,13 +998,19 @@ function ExperienceScene() {
 
 export function ExperienceCanvas() {
   const { motionEnabled, quality } = useExperience();
-  const dpr: [number, number] = quality === "high" ? [1, 1.5] : [1, 1.25];
+  const dprMin = quality === "high" ? 1 : quality === "balanced" ? 0.9 : 0.8;
+  const dprMax = quality === "high" ? 1.2 : quality === "balanced" ? 1.05 : 0.9;
+  const [runtimeDpr, setRuntimeDpr] = useState(dprMax);
+
+  useEffect(() => {
+    setRuntimeDpr(dprMax);
+  }, [dprMax]);
 
   return (
     <div className="experience-canvas" aria-hidden="true">
       <Canvas
         camera={{ fov: 42, near: 0.1, far: 45, position: [0, 0, 8.05] }}
-        dpr={dpr}
+        dpr={[dprMin, runtimeDpr]}
         fallback={<div className="webgl-fallback"><strong>3D system view unavailable</strong><span>The complete portfolio remains available below.</span></div>}
         frameloop={motionEnabled ? "always" : "demand"}
         gl={{ alpha: false, antialias: quality !== "reduced", powerPreference: "high-performance" }}
@@ -891,7 +1019,14 @@ export function ExperienceCanvas() {
           gl.toneMappingExposure = 1.08;
         }}
       >
-        <ExperienceScene />
+        <PerformanceMonitor
+          flipflops={2}
+          bounds={(refreshRate) => [Math.min(42, refreshRate * 0.68), Math.min(58, refreshRate * 0.95)]}
+          onDecline={() => setRuntimeDpr((current) => Math.max(dprMin, current - 0.15))}
+          onFallback={() => setRuntimeDpr(dprMin)}
+        >
+          <ExperienceScene />
+        </PerformanceMonitor>
       </Canvas>
       <div className="canvas-vignette" />
       <div className="canvas-chromatic-edge" />

@@ -26,6 +26,7 @@ type ExperienceContextValue = {
   gameIntegrity: number;
   gameLane: number;
   gameProgress: number;
+  gameProgressRef: MutableRefObject<number>;
   gameResult: GameResult;
   gameScore: number;
   motionEnabled: boolean;
@@ -52,8 +53,8 @@ function getQualityTier(): QualityTier {
 
   if (reducedMotion) return "static";
   if (memory <= 4 || cores <= 4) return "reduced";
-  if (window.innerWidth < 900 || memory <= 8) return "balanced";
-  return "high";
+  if (window.innerWidth >= 1440 && memory >= 8 && cores >= 12) return "high";
+  return "balanced";
 }
 
 export function ExperienceProvider({ children }: { children: ReactNode }) {
@@ -70,6 +71,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
   const [gameResult, setGameResult] = useState<GameResult>("idle");
   const [gameScore, setGameScore] = useState(0);
   const gameLaneRef = useRef(1);
+  const gameProgressRef = useRef(0);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -77,43 +79,69 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
     setQuality(nextQuality);
     setMotionEnabled(nextQuality !== "static");
 
+    let chapterPoints: number[] = [];
+    let projectPoints: number[] = [];
+    let resizeFrame = 0;
+    let disposed = false;
+
+    const measurePoints = () => {
+      chapterPoints = chapters.map(({ href }) => {
+        const element = document.querySelector<HTMLElement>(href);
+        return element ? element.getBoundingClientRect().top + window.scrollY : 0;
+      });
+      projectPoints = projects.map((project) => {
+        const element = document.querySelector<HTMLElement>(`#project-${project.slug}`);
+        return element ? element.getBoundingClientRect().top + window.scrollY : 0;
+      });
+    };
+
     const updateProgress = () => {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       progress.current = scrollable > 0 ? window.scrollY / scrollable : 0;
 
-      const points = chapters.map(({ href }) => {
-        const element = document.querySelector<HTMLElement>(href);
-        return element?.offsetTop ?? 0;
-      });
       const scrollLine = window.scrollY + window.innerHeight * 0.38;
       let nextChapter = 0;
-      points.forEach((point, index) => {
+      chapterPoints.forEach((point, index) => {
         if (scrollLine >= point) nextChapter = index;
       });
       setActiveChapter((current) => (current === nextChapter ? current : nextChapter));
 
       if (nextChapter === 2) {
         let nextProject = 0;
-        projects.forEach((project, index) => {
-          const element = document.querySelector<HTMLElement>(`#project-${project.slug}`);
-          if (element && scrollLine >= element.offsetTop) nextProject = index;
+        projectPoints.forEach((point, index) => {
+          if (scrollLine >= point) nextProject = index;
         });
         setActiveProject((current) => (current === nextProject ? current : nextProject));
       }
     };
 
+    const updateLayout = () => {
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(() => {
+        measurePoints();
+        updateProgress();
+      });
+    };
+
+    measurePoints();
     const trigger = ScrollTrigger.create({
       start: 0,
       end: "max",
       onUpdate: updateProgress,
+      onRefresh: updateLayout,
     });
 
     updateProgress();
-    window.addEventListener("resize", updateProgress, { passive: true });
+    window.addEventListener("resize", updateLayout, { passive: true });
+    void document.fonts.ready.then(() => {
+      if (!disposed) updateLayout();
+    });
 
     return () => {
+      disposed = true;
+      cancelAnimationFrame(resizeFrame);
       trigger.kill();
-      window.removeEventListener("resize", updateProgress);
+      window.removeEventListener("resize", updateLayout);
     };
   }, []);
 
@@ -140,6 +168,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       if (event.key === "Escape") {
         setGameActive(false);
         setGameProgress(0);
+        gameProgressRef.current = 0;
         setGameIntegrity(100);
         setGameResult("idle");
         setGameScore(0);
@@ -172,6 +201,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
     let collisionTimeout = 0;
     let pausedAt: number | null = null;
     let pausedDuration = 0;
+    let lastUiUpdate = 0;
 
     const onVisibilityChange = () => {
       if (document.hidden) {
@@ -189,8 +219,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       }
 
       const nextProgress = Math.min(1, (now - startedAt - pausedDuration) / duration);
-      setGameProgress(nextProgress);
-      setGameScore(Math.round(nextProgress * 3200) + bonus);
+      gameProgressRef.current = nextProgress;
 
       obstacles.forEach((obstacle, index) => {
         if (!passed.has(index) && nextProgress >= obstacle.at) {
@@ -209,6 +238,12 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
           }
         }
       });
+
+      if (nextProgress >= 1 || now - lastUiUpdate >= 100) {
+        lastUiUpdate = now;
+        setGameProgress(nextProgress);
+        setGameScore(Math.round(nextProgress * 3200) + bonus);
+      }
 
       if (integrity <= 0) {
         setGameResult("failed");
@@ -236,6 +271,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
 
   const startGame = useCallback(() => {
     setGameProgress(0);
+    gameProgressRef.current = 0;
     setGameIntegrity(100);
     setGameLane(1);
     setGameResult("idle");
@@ -246,6 +282,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
   const stopGame = useCallback(() => {
     setGameActive(false);
     setGameProgress(0);
+    gameProgressRef.current = 0;
     setGameIntegrity(100);
     setGameResult("idle");
     setGameScore(0);
@@ -259,6 +296,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       gameIntegrity,
       gameLane,
       gameProgress,
+      gameProgressRef,
       gameResult,
       gameScore,
       motionEnabled,
